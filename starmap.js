@@ -56,7 +56,7 @@ function stereographicProjectPoints(arr, lam1, phi1, rad) {
 
 StarMap.prototype.setPos = function (lat, lon, time) {
     if (typeof time === 'undefined') {
-        time = Date.now();
+        time = (new Date()).getTime();
     } else if (typeof time !== 'number') {
         time = time.getTime();
     }
