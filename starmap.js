@@ -33,10 +33,6 @@ function stereographicProjectPoints(arr, lam1, phi1, rad) {
     function cosSum(cosa, sina, cosb, sinb) {
         return cosa*cosb-sina*sinb;
     }
-    /** @const */
-    var DEG2RAD = StarMap.DEG2RAD;
-    lam1 *= DEG2RAD;
-    phi1 *= DEG2RAD;
     var len = arr.length, i;
     var res = Array(len);
     var cphi = Math.cos(phi1), sphi = Math.sin(phi1);
@@ -58,7 +54,40 @@ function stereographicProjectPoints(arr, lam1, phi1, rad) {
     return res;
 }
 
-StarMap.prototype.setPos = function (lat, lon) {
+StarMap.prototype.setPos = function (lat, lon, time) {
+    if (typeof time === 'undefined') {
+        time = Date.now();
+    } else if (typeof time !== 'number') {
+        time = time.getTime();
+    }
+    
+    function mjd2jct(mjd) {
+        return (mjd - 51544.5) / 36525.0;
+    };
+    function mod(x, y) {
+        return x - y*Math.floor(x/y);
+    }
+    function gmst(mjd) {
+        /** @const */
+        var SECS = 86400; // 24*60*60 -- number of seconds in day;
+        var mjd0 = Math.floor(mjd), ut = SECS * (mjd - mjd0), t0, t, gmst;
+        t0 = mjd2jct(mjd0);
+        t = mjd2jct(mjd);
+        gmst = 24110.54841 + 8640184.812866 * t0 + 1.0027379093 * ut +
+	    (0.093104 - (6.2e-6) * t) * t * t;
+        return 2 * Math.PI / SECS * mod(gmst, SECS);
+    }
+
+    var mjd = time / 86400000.0 + 40587.0;
+    var gms_t = gmst(mjd);
+
+    /** @const */
+    var DEG2RAD = StarMap.DEG2RAD;
+    lat *= DEG2RAD;
+    lon *= DEG2RAD;
+
+    lat += gms_t;
+
     var ortho = stereographicProjectPoints(StarMap.STARS, lat, lon, this.size/2);
     var cst = [], i, j, slen = ortho.length, co = StarMap.CONSTELLATIONS, clen = co.length, halfsize = Math.floor(this.size/2);
     
