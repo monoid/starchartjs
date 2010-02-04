@@ -123,4 +123,4 @@ StarMap.prototype.setPos = function (lat, lon, time) {
 };
 
 window['StarMap']=StarMap;
-StarMap.prototype['starMap'] = StarMap.prototype.setPos;
+StarMap.prototype['setPos'] = StarMap.prototype.setPos;
