@@ -110,6 +110,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     
     this.constel.push(this.paper.path(cst.join(' ')).attr({
         'stroke': '#FFF',
+        'stroke-opacity': 0.3,
         'stroke-width': '1'
     }));
     
@@ -117,7 +118,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         var s = ortho[i];
         if (s[3]) {
             this.stars.push(
-                this.paper.circle(s[1]+halfsize, halfsize-s[2], Math.max(3.5-s[0]/2, 0.5)).attr({fill: '#FFF'}));
+                this.paper.circle(s[1]+halfsize, halfsize-s[2], Math.max(3.5-s[0]/2, 0.5)).attr({fill: '#FFF', 'stroke-width':0}));
         }
     }
 };
