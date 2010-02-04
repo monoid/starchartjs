@@ -10,8 +10,11 @@ function StarMap (elt, size, prop) {
     this.circle = this.paper.circle(halfsize, halfsize, halfsize);
     this.circle.attr({fill: (prop.circleFill || "#000010")});
     this.constel = this.paper.set();
+    this.constelCache = null;
     this.eqGrid = prop.eqGrid ? this.paper.set() : null;
     this.stars = this.paper.set();
+    this.starsCache = Array(StarMap.STARS.length);
+    this._init();
 }
 
 /**
@@ -58,15 +61,10 @@ function stereographicProjectPoints(arr, lam1, phi1, rad) {
     return res;
 }
 
-StarMap.prototype.setPos = function (lat, lon) {
+StarMap.prototype._init = function () {
+    var lat = 0.0, lon = 0.0;
     var ortho = stereographicProjectPoints(StarMap.STARS, lat, lon, this.size/2);
     var cst = [], i, j, slen = ortho.length, co = StarMap.CONSTELLATIONS, clen = co.length, halfsize = Math.floor(this.size/2);
-    
-    this.constel.remove();
-    if (this.eqGrid) { 
-        this.eqGrid.remove();
-    }
-    this.stars.remove();
     
     for (i = 0; i< clen; ++i) {
         var arc = co[i];
@@ -79,7 +77,7 @@ StarMap.prototype.setPos = function (lat, lon) {
         }
     }
     
-    this.constel.push(this.paper.path(cst.join(' ')).attr({
+    this.constel.push(this.constelCache = this.paper.path(cst.join(' ')).attr({
         'stroke': '#FFF',
         'stroke-width': '1'
     }));
@@ -88,7 +86,48 @@ StarMap.prototype.setPos = function (lat, lon) {
         var s = ortho[i];
         if (s[3]) {
             this.stars.push(
-                this.paper.circle(s[1]+halfsize, halfsize-s[2], Math.max(3.5-s[0]/2, 0.5)).attr({fill: '#FFF'}));
+                this.starsCache[i] = this.paper.circle(s[1]+halfsize, halfsize-s[2], Math.max(3.5-s[0]/2, 0.5)).attr({fill: '#FFF'}));
+        } else {
+            this.stars.push(
+                this.starsCache[i] = this.paper.circle(0, 0, Math.max(3.5-s[0]/2, 0.5)).attr({fill: '#FFF'}));
+            this.starsCache[i].hide();
+        }
+    }
+};
+
+StarMap.prototype.setPos = function (lat, lon, time) {
+    if (typeof time === 'undefined') {
+        time = Date.now();
+    } else if (typeof time !== 'number') {
+        time = time.getTime();
+    }
+
+    
+    var ortho = stereographicProjectPoints(StarMap.STARS, lat, lon, this.size/2);
+    var cst = [], i, j, slen = ortho.length, co = StarMap.CONSTELLATIONS, clen = co.length, halfsize = Math.floor(this.size/2);
+    
+    for (i = 0; i< clen; ++i) {
+        var arc = co[i];
+        for (j = arc.length; j--; ) {
+            var s = arc[j][0], e = arc[j][1];
+            var so = ortho[s], eo = ortho[e];
+            if (so[3] || eo[3]) {
+                cst.push('M'+(so[1]+halfsize)+','+(halfsize-so[2])+' L'+(eo[1]+halfsize)+','+(halfsize-eo[2]));
+            }
+        }
+    }
+    
+    this.constelCache.attr('path', cst.join(' '));
+    
+    for (i = 0; i < slen; ++i) {
+        var s = ortho[i];
+        if (s[3]) {
+            this.starsCache[i].attr({
+                cx: s[1]+halfsize,
+                cy: halfsize-s[2]
+            }).show();
+        } else {
+            this.starsCache[i].hide();
         }
     }
 };
