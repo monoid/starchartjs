@@ -1,0 +1,55 @@
+#map-container {
+    padding: 30px;
+    position: relative;
+    margin:auto;width: 704px; height: 704px;
+}
+#map {
+    margin:0;padding:0;width: 704px; height: 704px;
+}
+#copy {
+    margin-top:1em;text-align: center; font-size: 80%;
+}
+
+#n {
+  position: absolute;
+  left: 0;
+  top: 0px;
+  width: 764px;
+  font-size: 28px;
+  font-family: Georgia, Chancery, Times;
+  font-style: italic;
+  text-align:center;
+}
+
+#s {
+  position: absolute;
+  left: 0;
+  top: 730px;
+  width: 764px;
+  font-size: 28px;
+  font-family: Georgia, Garamond, Times;
+  font-style: italic;
+  text-align:center;
+}
+
+#e {
+   position: absolute;
+   width: 1ex;
+   height: 1em;
+   left: 5px;
+   top: 366px;
+   font-size: 28px;
+   font-style: italic;
+   font-family: Georgia, Garamond, Times;
+}
+
+#w {
+   position: absolute;
+   width: 1ex;
+   height: 1em;
+   left: 735px;
+   top: 366px;
+   font-size: 28px;
+   font-style: italic;
+   font-family: Georgia, Garamond, Times;
+}
