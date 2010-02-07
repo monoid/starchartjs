@@ -5,8 +5,9 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
   </head>
   <body>
-    <div id="test-map800" style="width: 800px; height: 800px;"></div>
-    <script type="text/javascript" src="lib/raphael_1-3-1_min.js"></script>
+    <!-- dammit, width and height cannot be replaced by CSS's width --
+      -- and height. -->
+    <canvas id="test-map800" width="800" height="800"></canvas>
     <script type="text/javascript" src="starmap.js"></script>
     <script type="text/javascript">
       var map = new StarMap("test-map800", 800, {});

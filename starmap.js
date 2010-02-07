@@ -3,15 +3,14 @@
  * @constructor
  */
 function StarMap (elt, size, prop) {
-    this.paper = new Raphael(elt, size, size);
+    this.paper = document.getElementById(elt);
+    this.ctx = this.paper.getContext("2d");
+    this.prop = prop;
+
     this.size = size;
     var halfsize = Math.floor(size/2);
 
-    this.circle = this.paper.circle(halfsize, halfsize, halfsize);
-    this.circle.attr({fill: (prop.circleFill || "#000010")});
-    this.constel = this.paper.set();
-    this.eqGrid = prop.eqGrid ? this.paper.set() : null;
-    this.stars = this.paper.set();
+    this.drawBg();
 }
 
 /**
@@ -54,6 +53,19 @@ function stereographicProjectPoints(arr, lam1, phi1, rad) {
     return res;
 }
 
+StarMap.prototype.drawBg = function () {
+    var size = this.size;
+    var halfsize = Math.floor(size/2);
+    var ctx = this.ctx;
+
+    ctx.fillStyle='#FFF';
+    ctx.fillRect(0,0,size, size);
+    ctx.beginPath();
+    ctx.fillStyle = (this.prop.circleFill || "#000010");
+    ctx.arc(halfsize, halfsize, halfsize, 0, 2*Math.PI, true);
+    ctx.fill();
+}    
+
 StarMap.prototype.setPos = function (lat, lon, time) {
     if (typeof time === 'undefined') {
         time = (new Date()).getTime();
@@ -91,31 +103,37 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     var ortho = stereographicProjectPoints(StarMap.STARS, lat, lon, this.size/2);
     var cst = [], i, j, slen = ortho.length, co = StarMap.CONSTELLATIONS, clen = co.length, halfsize = Math.floor(this.size/2);
     
-    this.constel.remove();
-    if (this.eqGrid) { 
-        this.eqGrid.remove();
-    }
-    this.stars.remove();
-    
+    this.drawBg();
+
+    var ctx = this.ctx;
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
     for (j = clen; j--; ) {
         var s = co[j][0], e = co[j][1];
         var so = ortho[s], eo = ortho[e];
         if (so[3] || eo[3]) {
-            cst.push('M'+(so[1]+halfsize)+','+(halfsize-so[2])+' L'+(eo[1]+halfsize)+','+(halfsize-eo[2]));
+            ctx.moveTo((so[1]+halfsize), (halfsize-so[2]));
+            ctx.lineTo((eo[1]+halfsize), (halfsize-eo[2]));
         }
     }
     
-    this.constel.push(this.paper.path(cst.join(' ')).attr({
-        'stroke': '#FFF',
-        'stroke-opacity': 0.3,
-        'stroke-width': '1'
-    }));
+    ctx.stroke();
+//     this.constel.push(this.paper.path(cst.join(' ')).attr({
+//         'stroke': '#FFF',
+//         'stroke-opacity': 0.3,
+//         'stroke-width': '1'
+//     }));
     
+    ctx.fillStyle = '#FFF';
     for (i = 0; i < slen; ++i) {
         var s = ortho[i];
         if (s[3]) {
-            this.stars.push(
-                this.paper.circle(s[1]+halfsize, halfsize-s[2], Math.max(3.5-s[0]/2, 0.5)).attr({fill: '#FFF', 'stroke-width':0}));
+            ctx.beginPath();
+            ctx.arc(s[1]+halfsize, halfsize-s[2],
+                    Math.max(3.5-s[0]/2, 0.5),
+                    0, 2*Math.PI, true);
+            ctx.fill();
+            //this.paper.circle().attr({fill: '#FFF', 'stroke-width':0}));
         }
     }
 };
