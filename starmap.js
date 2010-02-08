@@ -58,6 +58,7 @@ StarMap.prototype.drawBg = function () {
     var halfsize = Math.floor(size/2);
     var ctx = this.ctx;
 
+    ctx.clearRect(0, 0, size, size);
     ctx.fillStyle='#FFF';
     ctx.fillRect(0,0,size, size);
     ctx.beginPath();
