@@ -54,8 +54,6 @@ function stereographicProjectPoints(arr, lam1, phi1, rad) {
 }
 
 function stereographicProjectObj(re, de, lam1, phi1, rad) {
-    console.log('stereographicProjectObj');
-    console.debug(arguments);
     var DEG2RAD = StarMap.DEG2RAD;
     var cphi = Math.cos(phi1), sphi = Math.sin(phi1);
     de = lam1-de;
@@ -182,15 +180,12 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     var jct = mjd2jct(mjd);
     var earthPos = StarMap.EARTH.keplerCoord(jct);
     var equ2ecl = StarJs.Coord.ecl2equMatrix(jct);
-    console.debug(equ2ecl);
     for (i = 0; i < StarMap.PLANETS.length; ++i) {
         var planet = StarMap.PLANETS[i];
         var c = planet.getCoord(earthPos, jct);
         var cc = new StarJs.Vector.Polar3(equ2ecl.apply(c));
-        console.debug(planet.pl.name, c, cc.rad, cc.phi, cc.theta);
 
         var cm = stereographicProjectObj(cc.theta, cc.phi, lat, lon, this.size/2);
-        console.debug('result', cm);
         if (cm[2]) {
             ctx.beginPath();
             ctx.fillStyle = planet.color;
