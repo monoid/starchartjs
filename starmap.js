@@ -53,6 +53,20 @@ function stereographicProjectPoints(arr, lam1, phi1, rad) {
     return res;
 }
 
+function stereographicProjectObj(re, de, lam1, phi1, rad) {
+    console.log('stereographicProjectObj');
+    console.debug(arguments);
+    var DEG2RAD = StarMap.DEG2RAD;
+    var cphi = Math.cos(phi1), sphi = Math.sin(phi1);
+    de = lam1-de;
+    var cosc = Math.cos(re), sinc = Math.sin(re);
+    var cosl = Math.cos(de), sinl = Math.sin(de);
+    var k = rad / (1.0 + sphi * sinc + cphi * cosc * cosl);
+    var x = k * cosc * sinl, y = k * (cphi * sinc - sphi * cosc * cosl);
+    return [x, y, x*x + y*y < rad*rad];
+}
+
+
 StarMap.prototype.drawBg = function () {
     var size = this.size;
     var halfsize = Math.floor(size/2);
@@ -67,7 +81,33 @@ StarMap.prototype.drawBg = function () {
     ctx.fill();
 }    
 
+StarMap.Planet = function (pl, size, color) {
+    this.pl = pl;
+    this.size = size;
+    this.color = color;
+}
+
+StarMap.Planet.prototype.getCoord = function (earthPos, jct) {
+    var pos = this.pl.keplerCoord(jct);
+    return pos.sub(earthPos);
+}
+
+StarMap.PLANETS = [
+    new StarMap.Planet(StarJs.Solar.BODIES.Sun, 20, '#FF0'),
+    new StarMap.Planet(StarJs.Solar.BODIES.Mercury, 3, '#888'),
+    new StarMap.Planet(StarJs.Solar.BODIES.Venus, 4, '#AAA'),
+    new StarMap.Planet(StarJs.Solar.BODIES.Mars, 4, '#F80'),
+    new StarMap.Planet(StarJs.Solar.BODIES.Jupiter, 6, '#FB0'),
+    new StarMap.Planet(StarJs.Solar.BODIES.Saturn, 6, '#AA0'),
+    new StarMap.Planet(StarJs.Solar.BODIES.Uranus, 6, '#CAF'),
+    new StarMap.Planet(StarJs.Solar.BODIES.Neptune, 6, '#CAF')
+];
+
+StarMap.EARTH = StarJs.Solar.BODIES.Earth;
+
 StarMap.prototype.setPos = function (lat, lon, time) {
+    var Ti = StarJs.Time;
+
     if (typeof time === 'undefined') {
         time = (new Date()).getTime();
     } else if (typeof time !== 'number') {
@@ -135,6 +175,33 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                     0, 2*Math.PI, true);
             ctx.fill();
             //this.paper.circle().attr({fill: '#FFF', 'stroke-width':0}));
+        }
+    }
+
+    // Draw planets
+    var jct = mjd2jct(mjd);
+    var earthPos = StarMap.EARTH.keplerCoord(jct);
+    var equ2ecl = StarJs.Coord.ecl2equMatrix(jct);
+    console.debug(equ2ecl);
+    for (i = 0; i < StarMap.PLANETS.length; ++i) {
+        var planet = StarMap.PLANETS[i];
+        var c = planet.getCoord(earthPos, jct);
+        var cc = new StarJs.Vector.Polar3(equ2ecl.apply(c));
+        console.debug(planet.pl.name, c, cc.rad, cc.phi, cc.theta);
+
+        var cm = stereographicProjectObj(cc.theta, cc.phi, lat, lon, this.size/2);
+        console.debug('result', cm);
+        if (cm[2]) {
+            ctx.beginPath();
+            ctx.fillStyle = planet.color;
+            ctx.arc(cm[0]+halfsize, halfsize-cm[1], planet.size/2,
+                    0, 2*Math.PI, true);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.strokeStyle = planet.color;
+            ctx.arc(cm[0]+halfsize, halfsize-cm[1], planet.size/2 + 2,
+                    0, 2*Math.PI, true);
+            ctx.stroke();
         }
     }
 };
