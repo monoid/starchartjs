@@ -122,7 +122,7 @@ StarMap.prototype._init = function () {
             0, 0,
             planet.pl.name).attr({
                 'fill': planet.color,
-                'font-size': 12,
+                'font-size': 12
             }).hide();
     }
 };
