@@ -5,29 +5,33 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
     <link rel="stylesheet" type="text/css" href="sc.css" />
   </head>
-  <body>
+  <body onload="load();">
     <div> </div>
     <div id="map-container">
 <!--       <div id="n">С</div> -->
 <!--       <div id="w">З</div> -->
       <div id="n">N</div>
       <div id="w">W</div>
-      <div id="map"></div>
+      <div width="700" height="700" id="map"></div>
       <div id="e">E</div>
       <div id="s">S</div>
 <!--       <div id="e">В</div> -->
 <!--       <div id="s">Ю</div> -->
     </div>
     <div id="copy" style="">&copy; 2010 Ivan Boldyrev</div>
+    <script type="text/javascript" src="../lib/starjs.min.js"></script>
     <script type="text/javascript" src="../lib/raphael_1-3-1_min.js"></script>
     <script type="text/javascript" src="../starmap.js"></script>
     <script type="text/javascript">
-      var map = new StarMap("map", 700, {});
+var map;
+function load() {
+      map = new StarMap("map", 700, {});
+      animate();
+}
 function animate() {
   map.setPos(83,54);
-  setTimeout(animate, 60000);
+  setTimeout(animate, 6000);
 }
-animate();
     </script>
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
