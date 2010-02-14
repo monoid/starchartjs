@@ -108,18 +108,10 @@ StarMap.prototype._init = function () {
     var mjd = time / 86400000.0 + 40587.0;
 
     var ortho = stereographicProjectPoints(StarMap.STARS, lat, lon, this.size/2);
-    var cst = [], i, j, slen = ortho.length, co = StarMap.CONSTELLATIONS, clen = co.length, halfsize = Math.floor(this.size/2);
+    var i, j, slen = ortho.length, co = StarMap.CONSTELLATIONS, clen = co.length, halfsize = Math.floor(this.size/2);
 
     // Constellations
-    for (j = 0; j < co.length; ++j) {
-        var s = co[j][0], e = co[j][1];
-        var so = ortho[s], eo = ortho[e];
-        if (so[3] || eo[3]) {
-            cst.push('M'+(so[1]+halfsize)+','+(halfsize-so[2])+' L'+(eo[1]+halfsize)+','+(halfsize-eo[2]));
-        }
-    }
-
-    this.constel.push(this.constelCache = this.paper.path(cst.join(' ')).attr({
+    this.constel.push(this.constelCache = this.paper.path('').attr({
         'stroke': '#FFF',
         'stroke-opacity': 0.3,
         'stroke-width': '1'
@@ -127,47 +119,21 @@ StarMap.prototype._init = function () {
 
     // Stars
     for (i = 0; i < slen; ++i) {
-        var s = ortho[i];
-        if (s[3]) {
-            this.stars.push(
-                this.starsCache[i] = this.paper.circle(s[1]+halfsize, halfsize-s[2], Math.max(3.5-s[0]/2, 0.5)).attr({fill: '#FFF'}));
-        } else {
-            this.stars.push(
-                this.starsCache[i] = this.paper.circle(0, 0, Math.max(3.5-s[0]/2, 0.5)).attr({fill: '#FFF'}));
-            this.starsCache[i].hide();
-        }
+        var s = StarMap.STARS[i]
+        this.starsCache[i] = this.paper.circle(0, 0, Math.max(3.5-s[0]/2, 0.5)).attr({fill: '#FFF'}).hide();
     }
 
     // Planets
-    var jct = Ti.mjd2jct(mjd);
-    var earthPos = StarMap.EARTH.keplerCoord(jct);
-    var equ2ecl = StarJs.Coord.ecl2equMatrix(jct);
     for (i = 0; i < StarMap.PLANETS.length; ++i) {
         var planet = StarMap.PLANETS[i];
-        var c = planet.getCoord(earthPos, jct);
-        var cc = new StarJs.Vector.Polar3(equ2ecl.apply(c));
-        var cm = stereographicProjectObj(cc.theta, cc.phi, lat, lon, this.size/2);
-        if (cm[2]) {
-            var xx = cm[0]+halfsize, yy = halfsize-cm[1];
-            this.planetsCache[i] = this.paper.circle(xx, yy, planet.size).attr({fill: planet.color, stroke: "#FFF"});
+        this.planetsCache[i] = this.paper.circle(0, 0, planet.size).attr({fill: planet.color, stroke: "#FFF"}).hide();
 
-            this.planetsLabels[i] = this.paper.text(
-                xx + planet.size/2 + 1,
-                yy + planet.size/2 - 1,
-                planet.pl.name).attr({
-                    'fill': planet.color,
-                    'font-size': 12,
-                });
-        } else {
-            this.planetsCache[i] = this.paper.circle(0, 0, planet.size).attr({fill: planet.color, stroke: "#FFF"}).hide();
-
-            this.planetsLabels[i] = this.paper.text(
-                0, 0,
-                planet.pl.name).attr({
-                    'fill': planet.color,
-                    'font-size': 12,
-                }).hide();
-        }
+        this.planetsLabels[i] = this.paper.text(
+            0, 0,
+            planet.pl.name).attr({
+                'fill': planet.color,
+                'font-size': 12,
+            }).hide();
     }
 };
 
