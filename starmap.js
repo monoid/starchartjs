@@ -189,14 +189,21 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         if (cm[2]) {
             ctx.beginPath();
             ctx.fillStyle = planet.color;
-            ctx.arc(cm[0]+halfsize, halfsize-cm[1], planet.size/2,
+            var xx = cm[0]+halfsize, yy = halfsize-cm[1];
+            ctx.arc(xx, yy, planet.size/2,
                     0, 2*Math.PI, true);
             ctx.fill();
             ctx.beginPath();
             ctx.strokeStyle = planet.color;
-            ctx.arc(cm[0]+halfsize, halfsize-cm[1], planet.size/2 + 2,
+            ctx.arc(xx, yy, planet.size/2 + 2,
                     0, 2*Math.PI, true);
             ctx.stroke();
+
+            if (ctx.fillText) {
+                ctx.fillText(planet.pl.name,
+                             xx + planet.size/2 + 1,
+                             yy - planet.size/2 - 1);
+            }
         }
     }
 };
