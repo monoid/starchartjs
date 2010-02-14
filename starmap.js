@@ -10,13 +10,10 @@ function StarMap (elt, size, prop) {
 
     this.circle = this.paper.circle(halfsize, halfsize, halfsize);
     this.circle.attr({fill: (prop.circleFill || "#000010")});
-    this.constel = this.paper.set();
     this.constelCache = null;
     this.eqGrid = prop.eqGrid ? this.paper.set() : null;
-    this.stars = this.paper.set();
     this.starsCache = Array(StarMap.STARS.length);
 
-    this.planets = this.paper.set();
     this.planetsCache = Array(StarMap.PLANETS.length);
     this.planetsLabels = Array(StarMap.PLANETS.length);
 
@@ -104,11 +101,11 @@ StarMap.prototype._init = function () {
     var i, j, slen = ortho.length, co = StarMap.CONSTELLATIONS, clen = co.length, halfsize = Math.floor(this.size/2);
 
     // Constellations
-    this.constel.push(this.constelCache = this.paper.path('').attr({
+    this.constelCache = this.paper.path('').attr({
         'stroke': '#FFF',
         'stroke-opacity': 0.6,
         'stroke-width': '1'
-    }));
+    });
 
     // Stars
     for (i = 0; i < slen; ++i) {
