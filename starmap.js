@@ -106,7 +106,7 @@ StarMap.prototype._init = function () {
     // Constellations
     this.constel.push(this.constelCache = this.paper.path('').attr({
         'stroke': '#FFF',
-        'stroke-opacity': 0.3,
+        'stroke-opacity': 0.6,
         'stroke-width': '1'
     }));
 
