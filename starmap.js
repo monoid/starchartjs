@@ -116,8 +116,11 @@ StarMap.prototype._init = function () {
     // Planets
     for (i = 0; i < StarMap.PLANETS.length; ++i) {
         var planet = StarMap.PLANETS[i];
-        this.planetsCache[i] = this.paper.circle(0, 0, planet.size).attr({fill: planet.color, stroke: "#FFF"}).hide();
-
+        this.planetsCache[i] = this.paper.circle(0, 0, planet.size/2+1).attr({fill: planet.color, stroke: "#FFF"}).hide();
+    }
+    // and their labels
+    for (i = 0; i < StarMap.PLANETS.length; ++i) {
+        var planet = StarMap.PLANETS[i];
         this.planetsLabels[i] = this.paper.text(
             0, 0,
             planet.pl.name).attr({
@@ -187,7 +190,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             var xx = cm[0]+halfsize, yy = halfsize-cm[1];
 
             this.planetsCache[i].attr({'cx': xx, 'cy': yy}).show();
-            this.planetsLabels[i].attr({'x': xx, 'y': yy - planet.size - 8}).show();
+            this.planetsLabels[i].attr({'x': xx, 'y': yy - planet.size/2 - 9}).show();
         } else {
             this.planetsCache[i].hide();
             this.planetsLabels[i].hide();
