@@ -12,6 +12,7 @@ function StarMap (elt, size, prop) {
     this.circle.attr({fill: (prop.circleFill || "#000010")});
     this.constelCache = null;
     this.eqGrid = prop.eqGrid ? this.paper.set() : null;
+    this.planets = (typeof prop.planets === 'undefined') ? true : prop.planets;
     this.starsCache = Array(StarMap.STARS.length);
 
     this.planetsCache = Array(StarMap.PLANETS.length);
@@ -113,20 +114,22 @@ StarMap.prototype._init = function () {
         this.starsCache[i] = this.paper.circle(0, 0, Math.max(3.5-s[0]/2, 0.5)).attr({fill: '#FFF'}).hide();
     }
 
-    // Planets
-    for (i = 0; i < StarMap.PLANETS.length; ++i) {
-        var planet = StarMap.PLANETS[i];
-        this.planetsCache[i] = this.paper.circle(0, 0, planet.size/2+1).attr({fill: planet.color, stroke: "#FFF"}).hide();
-    }
-    // and their labels
-    for (i = 0; i < StarMap.PLANETS.length; ++i) {
-        var planet = StarMap.PLANETS[i];
-        this.planetsLabels[i] = this.paper.text(
-            0, 0,
-            planet.pl.name).attr({
-                'fill': planet.color,
-                'font-size': 12
-            }).hide();
+    if (this.planets) {
+        // Planets
+        for (i = 0; i < StarMap.PLANETS.length; ++i) {
+            var planet = StarMap.PLANETS[i];
+            this.planetsCache[i] = this.paper.circle(0, 0, planet.size/2+1).attr({fill: planet.color, stroke: "#FFF"}).hide();
+        }
+        // and their labels
+        for (i = 0; i < StarMap.PLANETS.length; ++i) {
+            var planet = StarMap.PLANETS[i];
+            this.planetsLabels[i] = this.paper.text(
+                0, 0,
+                planet.pl.name).attr({
+                    'fill': planet.color,
+                    'font-size': 12
+                }).hide();
+        }
     }
 };
 
@@ -176,24 +179,27 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         }
     }
 
+
     // Draw planets
-    var jct = Ti.mjd2jct(mjd);
-    var earthPos = StarMap.EARTH.keplerCoord(jct);
-    var equ2ecl = StarJs.Coord.ecl2equMatrix(jct);
-    for (i = 0; i < StarMap.PLANETS.length; ++i) {
-        var planet = StarMap.PLANETS[i];
-        var c = planet.getCoord(earthPos, jct);
-        var cc = new StarJs.Vector.Polar3(equ2ecl.apply(c));
-
-        var cm = stereographicProjectObj(cc.theta, cc.phi, lat, lon, this.size/2);
-        if (cm[2]) {
-            var xx = cm[0]+halfsize, yy = halfsize-cm[1];
-
-            this.planetsCache[i].attr({'cx': xx, 'cy': yy}).show();
-            this.planetsLabels[i].attr({'x': xx, 'y': yy - planet.size/2 - 9}).show();
-        } else {
-            this.planetsCache[i].hide();
-            this.planetsLabels[i].hide();
+    if (this.planets) {
+        var jct = Ti.mjd2jct(mjd);
+        var earthPos = StarMap.EARTH.keplerCoord(jct);
+        var equ2ecl = StarJs.Coord.ecl2equMatrix(jct);
+        for (i = 0; i < StarMap.PLANETS.length; ++i) {
+            var planet = StarMap.PLANETS[i];
+            var c = planet.getCoord(earthPos, jct);
+            var cc = new StarJs.Vector.Polar3(equ2ecl.apply(c));
+            
+            var cm = stereographicProjectObj(cc.theta, cc.phi, lat, lon, this.size/2);
+            if (cm[2]) {
+                var xx = cm[0]+halfsize, yy = halfsize-cm[1];
+                
+                this.planetsCache[i].attr({'cx': xx, 'cy': yy}).show();
+                this.planetsLabels[i].attr({'x': xx, 'y': yy - planet.size/2 - 9}).show();
+            } else {
+                this.planetsCache[i].hide();
+                this.planetsLabels[i].hide();
+            }
         }
     }
 };
