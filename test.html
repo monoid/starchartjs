@@ -10,9 +10,10 @@
       -- and height. -->
     <canvas id="test-map800" width="800" height="800"></canvas>
     <script type="text/javascript" src="lib/starjs.min.js"></script>
+    <script type="text/javascript" src="constellations-rey.js"></script>
     <script type="text/javascript" src="starmap.js"></script>
     <script type="text/javascript">
-      var map = new StarMap("test-map800", 800, {});
+      var map = new StarMap("test-map800", 800, REY_STARS, REY_CONSTELLATIONS, {});
       map.setPos(83,54);
     </script>
   </body>
