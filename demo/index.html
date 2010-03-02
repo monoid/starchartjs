@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>starchartjs test</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <link rel="stylesheet" type="text/css" href="sc.css" />
+  </head>
+  <body onload="load();">
+    <div> </div>
+    <div id="map-container">
+<!--       <div id="n">С</div> -->
+<!--       <div id="w">З</div> -->
+      <div id="n">N</div>
+      <div id="w">W</div>
+      <div width="700" height="700" id="map"></div>
+      <div id="e">E</div>
+      <div id="s">S</div>
+<!--       <div id="e">В</div> -->
+<!--       <div id="s">Ю</div> -->
+    </div>
+    <div id="copy" style="">&copy; 2010 Ivan Boldyrev</div>
+    <script type="text/javascript" src="../lib/starjs.min.js"></script>
+    <script type="text/javascript" src="../lib/raphael_1-3-1_min.js"></script>
+    <script type="text/javascript" src="../constellations-rey.js"></script>
+    <script type="text/javascript" src="../starmap.js"></script>
+    <script type="text/javascript">
+var map;
+function load() {
+      map = new StarMap("map", 700, {});
+      animate();
+}
+function animate() {
+  map.setPos(83,55);
+  setTimeout(animate, 6000);
+}
+    </script>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-589739-2");
+// Cookied already:
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
+  </body>
+</html>
