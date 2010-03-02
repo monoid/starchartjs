@@ -71,13 +71,27 @@ StarMap.Planet = function (pl, size, color) {
     this.color = color;
 }
 
-StarMap.Planet.prototype.getCoord = function (earthPos, jct) {
+StarMap.Planet.prototype.getCoord = function (jct, earthPos, equ2ecl) {
     var pos = this.pl.keplerCoord(jct);
-    return pos.sub(earthPos);
+    return new StarJs.Vector.Polar3(equ2ecl.apply(pos.sub(earthPos)))
+}
+
+StarMap.Moon = function (size, color) {
+    this.size = size;
+    this.color = color;
+}
+
+StarMap.Moon.prototype.pl = { name: 'Moon' };
+
+StarMap.Moon.prototype.getCoord = function (jct, earthPos, equ2ecl) {
+    // earthPos and equ2ecl are ignored
+    var pos = StarJs.Solar.approxMoon(jct);
+    return {'phi': pos.ra, 'theta': pos.dec};
 }
 
 StarMap.PLANETS = [
     new StarMap.Planet(StarJs.Solar.BODIES.Sun, 20, '#FF0'),
+    new StarMap.Moon(20, '#880'),
     new StarMap.Planet(StarJs.Solar.BODIES.Mercury, 3, '#888'),
     new StarMap.Planet(StarJs.Solar.BODIES.Venus, 4, '#AAA'),
     new StarMap.Planet(StarJs.Solar.BODIES.Mars, 4, '#F80'),
@@ -185,8 +199,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         var equ2ecl = StarJs.Coord.ecl2equMatrix(jct);
         for (i = 0; i < StarMap.PLANETS.length; ++i) {
             var planet = StarMap.PLANETS[i];
-            var c = planet.getCoord(earthPos, jct);
-            var cc = new StarJs.Vector.Polar3(equ2ecl.apply(c));
+            var cc = planet.getCoord(jct, earthPos, equ2ecl);
             
             var cm = stereographicProjectObj(cc.theta, cc.phi, lat, lon, this.size/2);
             if (cm[2]) {
