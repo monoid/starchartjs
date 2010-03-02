@@ -155,7 +155,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         if (s[3]) {
             ctx.beginPath();
             ctx.arc(s[1]+halfsize, halfsize-s[2],
-                    Math.max(3.5-s[0]/2, 0.5),
+                    Math.max(3-s[0]/2, 0.5),
                     0, 2*Math.PI, true);
             ctx.fill();
         }
