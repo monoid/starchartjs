@@ -47,6 +47,31 @@ function stereographicProjectPoints(arr, lam1, phi1, rad) {
     return res;
 }
 
+function stereographicProjectMeridian(lam, R, k, lam1, phi1) {
+    var cp1 = Math.cos(phi1);
+    var x = -2*R*k0/(cp1*Math.tan(lam-lam1));
+    var y = -2*R*k0/Math.tan(phi1);
+    var rho = 2*R*k0/(cp1*Math.sin(lam-lam1));
+    // TODO: line if Math.sin(lam-lam1) == 0
+    return {
+        'type': 'circle',
+        'x': x,
+        'y': y,
+        'rho': rho
+    };
+}
+
+function stereographicProjectParallel(lam, R, k, lam, phi1) {
+    var s = Math.sin(phi1) + Math.sin(phi);
+    // TODO: line if s == 0
+    return {
+        'type': 'circle',
+        'x': 0,
+        'y': 2*R*k0*Math.cos(phi1)/s,
+        'z': 2*R*k0*Math.cos(phi)/s
+    };
+}
+
 function stereographicProjectObj(re, de, lam1, phi1, rad) {
     var DEG2RAD = StarJs.Math.DEG2RAD;
     var cphi = Math.cos(phi1), sphi = Math.sin(phi1);
