@@ -48,7 +48,6 @@ function stereographicProjectPoints(arr, lam1, phi1, rad) {
 }
 
 function stereographicProjectObj(re, de, lam1, phi1, rad) {
-    var DEG2RAD = StarJs.Math.DEG2RAD;
     var cphi = Math.cos(phi1), sphi = Math.sin(phi1);
     de = lam1-de;
     var cosc = Math.cos(re), sinc = Math.sin(re);
@@ -161,6 +160,29 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         }
     }
 
+    function messierColor(mag) {
+        var v = Math.min(15, Math.floor(19-mag));
+        var h = v.toString(16);
+        return '#'+h+h+h;
+    }
+
+    // Draw Messier objects
+    if (this.prop && this.prop.messier) {
+        var messier = this.prop.messier;
+        var mlen = messier.length, cc, cm;
+        for (i = 0; i < mlen; ++i) {
+            cc = messier[i];
+            cm = stereographicProjectObj(cc[4], 15*cc[3], lat, lon, halfsize);
+            if (cm[2]) {
+                var xx = cm[0]+halfsize, yy = halfsize-cm[1];
+                ctx.beginPath();
+                ctx.strokeStyle = messierColor(cc[5]);
+                ctx.arc(xx, yy, 4, 0, 2*Math.PI, true);
+                ctx.stroke();
+            }
+        }
+    }
+
     // Draw planets
     if (this.planets) {
         var jct = Ti.mjd2jct(mjd);
@@ -168,9 +190,9 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         var equ2ecl = StarJs.Coord.ecl2equMatrix(jct);
         for (i = 0; i < StarMap.PLANETS.length; ++i) {
             var planet = StarMap.PLANETS[i];
-            var cc = planet.getCoord(jct, earthPos, equ2ecl);
+            cc = planet.getCoord(jct, earthPos, equ2ecl);
             
-            var cm = stereographicProjectObj(cc.theta, cc.phi, lat, lon, this.size/2);
+            cm = stereographicProjectObj(cc.theta, cc.phi, lat, lon, this.size/2);
             if (cm[2]) {
                 ctx.beginPath();
                 ctx.fillStyle = planet.color;
