@@ -54,7 +54,7 @@ StereographicProjection.prototype.projectMeridian = function (lam) {
     var R = this.rad;
 
     var cp1 = Math.cos(phi1);
-    var dlam = lam-lam1;
+    var dlam = lam1-lam;
     var sl1 = Math.sin(dlam);
     if (Math.abs(sl1) < 1e-10 || Math.abs(cp1) < 1e-10) {
         return {
@@ -241,7 +241,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         }
         ctx.stroke();
     }
-    for (i = -180; i < 180; i += 20) {
+    for (i = -180; i < 180; i += 15) {
         var p = this.proj.projectMeridian(Math.PI*i/180);
         ctx.beginPath();
         switch (p.type) {
