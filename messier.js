@@ -108,3 +108,19 @@ var MESSIER =
 , ["M76", "Per", 3, 0.029786951923252477, 0.9000080811319839, 10.1]
 , ["M98", "Com", 5, 0.2134537683719503, 0.26005405240940105, 10.1]
 , ["M91", "Com", 5, 0.21973696641236884, 0.2530727498615562, 10.2]];
+
+// Sample colors
+var MESSIER_COLORS = {
+    '1': '#88F', // Open cluster
+    '2': '#FAA', // Globular cluster
+    '3': '#8FF', // Planetary nebula
+    '4': '#A88', // Starforming nebula
+    '5': '#FFF', // Spiral galaxy
+    '6': '#FFF', // Elliptical galaxy
+    '7': '#FFF', // Irregular galaxy
+    '8': '#FFF', // Lenticular galaxy
+    '9': '#FFA', // Supernova remnant
+    'A': '#444', // Asterism
+    'B': '#444', // Milky Way patch
+    'C': '#444'  // Binary star
+};

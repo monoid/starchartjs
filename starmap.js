@@ -176,7 +176,11 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             if (cm[2]) {
                 var xx = cm[0]+halfsize, yy = halfsize-cm[1];
                 ctx.beginPath();
-                ctx.strokeStyle = messierColor(cc[5]);
+                if (this.prop.messier_colors && this.prop.messier_colors[messier[i][2]]) {
+                    ctx.strokeStyle = this.prop.messier_colors[cc[2]];
+                } else {
+                    ctx.strokeStyle = messierColor(cc[5]);
+                }
                 ctx.arc(xx, yy, 4, 0, 2*Math.PI, true);
                 ctx.stroke();
             }
