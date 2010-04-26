@@ -48,6 +48,60 @@ StereographicProjection.prototype.projectPoints = function (arr, rad) {
     return res;
 };
 
+StereographicProjection.prototype.projectMeridian = function (lam) {
+    var lam1 = this.lam1;
+    var phi1 = this.phi1;
+    var R = this.rad;
+
+    var cp1 = Math.cos(phi1);
+    var dlam = lam1-lam;
+    var sl1 = Math.sin(dlam);
+    if (Math.abs(sl1) < 1e-10 || Math.abs(cp1) < 1e-10) {
+        return {
+            'type': 'line',
+            'x': 0,
+            'y': 0,
+            'vx': Math.cos(dlam),
+            'vy': sl1
+        };
+    } else {
+        var x = -R/(cp1*Math.tan(dlam));
+        var y = -R*Math.tan(phi1);
+        var rho = R/(cp1*sl1);
+        return {
+            'type': 'circle',
+            'x': x,
+            'y': y,
+            'r': rho
+        };
+    }
+}
+
+StereographicProjection.prototype.projectParallel = function (phi) {
+    var lam1 = this.lam1;
+    var phi1 = this.phi1;
+    var R = this.rad;
+
+    var s = Math.sin(phi1) + Math.sin(phi);
+    // TODO: line if s == 0
+    if (Math.abs(s) < 1e-10) {
+        return {
+            'type': 'line',
+            'x': 0,
+            'y': 0,
+            'vx': 1,
+            'vy': 0
+        };
+    } else {
+        return {
+            'type': 'circle',
+            'x': 0,
+            'y': R*Math.cos(phi1)/s,
+            'r': R*Math.cos(phi)/s
+        };
+    }
+}
+
 StereographicProjection.prototype.projectObj = function (re, de) {
     var lam1 = this.lam1;
     var phi1 = this.phi1;
@@ -95,6 +149,10 @@ StarMap.prototype.drawBg = function () {
     ctx.fillStyle = (this.prop.circleFill || "#000010");
     ctx.arc(halfsize, halfsize, halfsize, 0, 2*Math.PI, true);
     ctx.fill();
+    
+    ctx.beginPath();
+    ctx.arc(halfsize, halfsize, halfsize, 0, 2*Math.PI, true);
+    ctx.clip();
 }    
 
 StarMap.Planet = function (pl, size, color) {
@@ -154,7 +212,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
 
     lat += gms_t;
 
-    this.proj.setCoords(lat, lon);
+    this.proj.setCoords(lon, lat);
 
     var ortho = this.proj.projectPoints(this.stars);
     var cst = [], i, j, slen = ortho.length, co = this.cnstltns, clen = co.length, halfsize = Math.floor(this.size/2);
@@ -162,8 +220,50 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     this.drawBg();
 
     var ctx = this.ctx;
+
+    // Draw graticule
+    ctx.strokeStyle = '#448';
+    for (i = -80; i < 90; i += 10) {
+        var p = this.proj.projectParallel(Math.PI*i/180);
+        ctx.beginPath();
+        switch (p.type) {
+        case 'line':
+            ctx.moveTo(halfsize+p.x-halfsize*p.vx,
+                       halfsize+p.y-halfsize*p.vy);
+            ctx.lineTo(halfsize+p.x+halfsize*p.vx,
+                       halfsize+p.y+halfsize*p.vy);
+            break;
+        case 'circle':
+            if (p.r > 0) {
+                ctx.arc(halfsize+p.x, halfsize-p.y, p.r, 0, 2*Math.PI, true);
+            }
+            break;
+        }
+        ctx.stroke();
+    }
+    for (i = -180; i < 180; i += 15) {
+        var p = this.proj.projectMeridian(Math.PI*i/180);
+        ctx.beginPath();
+        switch (p.type) {
+        case 'line':
+            ctx.moveTo(halfsize+p.x-halfsize*p.vx,
+                       halfsize+p.y-halfsize*p.vy);
+            ctx.lineTo(halfsize+p.x+halfsize*p.vx,
+                       halfsize+p.y+halfsize*p.vy);
+            break;
+        case 'circle':
+            if (p.r > 0) {
+                ctx.arc(halfsize+p.x, halfsize-p.y, p.r,
+                        0, 2*Math.PI, true);
+            }
+            break;
+        }
+        ctx.stroke();
+    }
+
+    // Constellations
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
     for (j = clen; j--; ) {
         var s = co[j][0], e = co[j][1];
         var so = ortho[s], eo = ortho[e];
@@ -172,9 +272,9 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             ctx.lineTo((eo[1]+halfsize), (halfsize-eo[2]));
         }
     }
-    
     ctx.stroke();
-    
+
+    // Stars
     ctx.fillStyle = '#FFF';
     for (i = 0; i < slen; ++i) {
         var s = ortho[i];
