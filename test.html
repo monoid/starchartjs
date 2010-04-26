@@ -11,9 +11,10 @@
     <canvas id="test-map800" width="800" height="800"></canvas>
     <script type="text/javascript" src="lib/starjs.min.js"></script>
     <script type="text/javascript" src="constellations-rey60.js"></script>
+    <script type="text/javascript" src="messier.js"></script>
     <script type="text/javascript" src="starmap.js"></script>
     <script type="text/javascript">
-      var map = new StarMap("test-map800", 800, REY_STARS60, REY_CONSTELLATIONS60, {});
+      var map = new StarMap("test-map800", 800, REY_STARS60, REY_CONSTELLATIONS60, {messier: MESSIER, messier_colors: MESSIER_COLORS});
       map.setPos(83,54);
     </script>
   </body>
