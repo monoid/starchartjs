@@ -1,24 +1,20 @@
-/**
- * Celestial map component.
- * @constructor
- */
-function StarMap (elt, size, stars, cnstltns, prop) {
-    this.paper = document.getElementById(elt);
-    this.ctx = this.paper.getContext("2d");
-    this.prop = prop;
-
-    this.size = size;
-    var halfsize = Math.floor(size/2);
-
-    this.planets = (typeof prop.planets === 'undefined') ? true : prop.planets;
-
-    this.stars = stars;
-    this.cnstltns = cnstltns;
-
-    this.drawBg();
+/** Stereographic projection class. */
+function StereographicProjection (phi1, lam1, rad) {
+    this.phi1 = phi1;
+    this.lam1 = lam1;
+    this.rad = rad;
 }
 
-function stereographicProjectPoints(arr, lam1, phi1, rad) {
+StereographicProjection.prototype.setCoords = function (phi1, lam1) {
+    this.phi1 = phi1;
+    this.lam1 = lam1;
+}
+
+StereographicProjection.prototype.setRadius = function (rad) {
+    this.rad = rad;
+}
+
+StereographicProjection.prototype.projectPoints = function (arr, rad) {
     function sinSum(cosa, sina, cosb, sinb) {
         return cosa*sinb+sina*cosb;
     }
@@ -26,6 +22,11 @@ function stereographicProjectPoints(arr, lam1, phi1, rad) {
     function cosSum(cosa, sina, cosb, sinb) {
         return cosa*cosb-sina*sinb;
     }
+
+    var lam1 = this.lam1;
+    var phi1 = this.phi1;
+    var rad = this.rad;
+
     var len = arr.length, i;
     var res = Array(len);
     var cphi = Math.cos(phi1), sphi = Math.sin(phi1);
@@ -45,9 +46,12 @@ function stereographicProjectPoints(arr, lam1, phi1, rad) {
                   x*x + y*y < rad*rad];
     }
     return res;
-}
+};
 
-function stereographicProjectObj(re, de, lam1, phi1, rad) {
+StereographicProjection.prototype.projectObj = function (re, de) {
+    var lam1 = this.lam1;
+    var phi1 = this.phi1;
+    var rad = this.rad;
     var cphi = Math.cos(phi1), sphi = Math.sin(phi1);
     de = lam1-de;
     var cosc = Math.cos(re), sinc = Math.sin(re);
@@ -57,6 +61,27 @@ function stereographicProjectObj(re, de, lam1, phi1, rad) {
     return [x, y, x*x + y*y < rad*rad];
 }
 
+/**
+ * Celestial map component.
+ * @constructor
+ */
+function StarMap (elt, size, stars, cnstltns, prop) {
+    this.paper = document.getElementById(elt);
+    this.ctx = this.paper.getContext("2d");
+    this.prop = prop;
+
+    this.size = size;
+    var halfsize = Math.floor(size/2);
+
+    this.planets = (typeof prop.planets === 'undefined') ? true : prop.planets;
+
+    this.stars = stars;
+    this.cnstltns = cnstltns;
+
+    this.proj = new StereographicProjection(0, 0, halfsize);
+
+    this.drawBg();
+}
 
 StarMap.prototype.drawBg = function () {
     var size = this.size;
@@ -129,7 +154,9 @@ StarMap.prototype.setPos = function (lat, lon, time) {
 
     lat += gms_t;
 
-    var ortho = stereographicProjectPoints(this.stars, lat, lon, this.size/2);
+    this.proj.setCoords(lat, lon);
+
+    var ortho = this.proj.projectPoints(this.stars);
     var cst = [], i, j, slen = ortho.length, co = this.cnstltns, clen = co.length, halfsize = Math.floor(this.size/2);
     
     this.drawBg();
@@ -172,7 +199,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         var mlen = messier.length, cc, cm;
         for (i = 0; i < mlen; ++i) {
             cc = messier[i];
-            cm = stereographicProjectObj(cc[4], 15*cc[3], lat, lon, halfsize);
+            cm = this.proj.projectObj(cc[4], 15*cc[3]);
             if (cm[2]) {
                 var xx = cm[0]+halfsize, yy = halfsize-cm[1];
                 ctx.beginPath();
@@ -196,7 +223,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             var planet = StarMap.PLANETS[i];
             cc = planet.getCoord(jct, earthPos, equ2ecl);
             
-            cm = stereographicProjectObj(cc.theta, cc.phi, lat, lon, this.size/2);
+            cm = this.proj.projectObj(cc.theta, cc.phi);
             if (cm[2]) {
                 ctx.beginPath();
                 ctx.fillStyle = planet.color;
