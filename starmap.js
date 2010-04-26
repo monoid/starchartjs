@@ -1,24 +1,20 @@
-/**
- * Celestial map component.
- * @constructor
- */
-function StarMap (elt, size, stars, cnstltns, prop) {
-    this.paper = document.getElementById(elt);
-    this.ctx = this.paper.getContext("2d");
-    this.prop = prop;
-
-    this.size = size;
-    var halfsize = Math.floor(size/2);
-
-    this.planets = (typeof prop.planets === 'undefined') ? true : prop.planets;
-
-    this.stars = stars;
-    this.cnstltns = cnstltns;
-
-    this.drawBg();
+/** Stereographic projection class. */
+function StereographicProjection (phi1, lam1, rad) {
+    this.phi1 = phi1;
+    this.lam1 = lam1;
+    this.rad = rad;
 }
 
-function stereographicProjectPoints(arr, lam1, phi1, rad) {
+StereographicProjection.prototype.setCoords = function (phi1, lam1) {
+    this.phi1 = phi1;
+    this.lam1 = lam1;
+}
+
+StereographicProjection.prototype.setRadius = function (rad) {
+    this.rad = rad;
+}
+
+StereographicProjection.prototype.projectPoints = function (arr, rad) {
     function sinSum(cosa, sina, cosb, sinb) {
         return cosa*sinb+sina*cosb;
     }
@@ -26,6 +22,11 @@ function stereographicProjectPoints(arr, lam1, phi1, rad) {
     function cosSum(cosa, sina, cosb, sinb) {
         return cosa*cosb-sina*sinb;
     }
+
+    var lam1 = this.lam1;
+    var phi1 = this.phi1;
+    var rad = this.rad;
+
     var len = arr.length, i;
     var res = Array(len);
     var cphi = Math.cos(phi1), sphi = Math.sin(phi1);
@@ -45,35 +46,66 @@ function stereographicProjectPoints(arr, lam1, phi1, rad) {
                   x*x + y*y < rad*rad];
     }
     return res;
-}
+};
 
-function stereographicProjectMeridian(lam, R, k, lam1, phi1) {
+StereographicProjection.prototype.projectMeridian = function (lam) {
+    var lam1 = this.lam1;
+    var phi1 = this.phi1;
+    var R = this.rad;
+
     var cp1 = Math.cos(phi1);
-    var x = -2*R*k0/(cp1*Math.tan(lam-lam1));
-    var y = -2*R*k0/Math.tan(phi1);
-    var rho = 2*R*k0/(cp1*Math.sin(lam-lam1));
-    // TODO: line if Math.sin(lam-lam1) == 0
-    return {
-        'type': 'circle',
-        'x': x,
-        'y': y,
-        'rho': rho
-    };
+    var dlam = lam-lam1;
+    var sl1 = Math.sin(dlam);
+    if (Math.abs(sl1) < 1e-10 || Math.abs(cp1) < 1e-10) {
+        return {
+            'type': 'line',
+            'x': 0,
+            'y': 0,
+            'vx': Math.cos(dlam),
+            'vy': sl1
+        };
+    } else {
+        var x = -R/(cp1*Math.tan(dlam));
+        var y = -R*Math.tan(phi1);
+        var rho = R/(cp1*sl1);
+        return {
+            'type': 'circle',
+            'x': x,
+            'y': y,
+            'r': rho
+        };
+    }
 }
 
-function stereographicProjectParallel(lam, R, k, lam, phi1) {
+StereographicProjection.prototype.projectParallel = function (phi) {
+    var lam1 = this.lam1;
+    var phi1 = this.phi1;
+    var R = this.rad;
+
     var s = Math.sin(phi1) + Math.sin(phi);
     // TODO: line if s == 0
-    return {
-        'type': 'circle',
-        'x': 0,
-        'y': 2*R*k0*Math.cos(phi1)/s,
-        'z': 2*R*k0*Math.cos(phi)/s
-    };
+    if (Math.abs(s) < 1e-10) {
+        return {
+            'type': 'line',
+            'x': 0,
+            'y': 0,
+            'vx': 1,
+            'vy': 0
+        };
+    } else {
+        return {
+            'type': 'circle',
+            'x': 0,
+            'y': R*Math.cos(phi1)/s,
+            'r': R*Math.cos(phi)/s
+        };
+    }
 }
 
-function stereographicProjectObj(re, de, lam1, phi1, rad) {
-    var DEG2RAD = StarJs.Math.DEG2RAD;
+StereographicProjection.prototype.projectObj = function (re, de) {
+    var lam1 = this.lam1;
+    var phi1 = this.phi1;
+    var rad = this.rad;
     var cphi = Math.cos(phi1), sphi = Math.sin(phi1);
     de = lam1-de;
     var cosc = Math.cos(re), sinc = Math.sin(re);
@@ -83,6 +115,27 @@ function stereographicProjectObj(re, de, lam1, phi1, rad) {
     return [x, y, x*x + y*y < rad*rad];
 }
 
+/**
+ * Celestial map component.
+ * @constructor
+ */
+function StarMap (elt, size, stars, cnstltns, prop) {
+    this.paper = document.getElementById(elt);
+    this.ctx = this.paper.getContext("2d");
+    this.prop = prop;
+
+    this.size = size;
+    var halfsize = Math.floor(size/2);
+
+    this.planets = (typeof prop.planets === 'undefined') ? true : prop.planets;
+
+    this.stars = stars;
+    this.cnstltns = cnstltns;
+
+    this.proj = new StereographicProjection(0, 0, halfsize);
+
+    this.drawBg();
+}
 
 StarMap.prototype.drawBg = function () {
     var size = this.size;
@@ -96,6 +149,10 @@ StarMap.prototype.drawBg = function () {
     ctx.fillStyle = (this.prop.circleFill || "#000010");
     ctx.arc(halfsize, halfsize, halfsize, 0, 2*Math.PI, true);
     ctx.fill();
+    
+    ctx.beginPath();
+    ctx.arc(halfsize, halfsize, halfsize, 0, 2*Math.PI, true);
+    ctx.clip();
 }    
 
 StarMap.Planet = function (pl, size, color) {
@@ -155,14 +212,55 @@ StarMap.prototype.setPos = function (lat, lon, time) {
 
     lat += gms_t;
 
-    var ortho = stereographicProjectPoints(this.stars, lat, lon, this.size/2);
+    this.proj.setCoords(lon, lat);
+
+    var ortho = this.proj.projectPoints(this.stars);
     var cst = [], i, j, slen = ortho.length, co = this.cnstltns, clen = co.length, halfsize = Math.floor(this.size/2);
     
     this.drawBg();
 
     var ctx = this.ctx;
+
+    // Draw graticule
+    ctx.strokeStyle = '#448';
+    for (i = -80; i < 90; i += 10) {
+        var p = this.proj.projectParallel(Math.PI*i/180);
+        ctx.beginPath();
+        switch (p.type) {
+        case 'line':
+            ctx.moveTo(halfsize+p.x-halfsize*p.vx,
+                       halfsize+p.y-halfsize*p.vy);
+            ctx.lineTo(halfsize+p.x+halfsize*p.vx,
+                       halfsize+p.y+halfsize*p.vy);
+            break;
+        case 'circle':
+            ctx.arc(halfsize+p.x, halfsize-p.y, p.r,
+                    0, 2*Math.PI, true);
+            break;
+        }
+        ctx.stroke();
+    }
+    for (i = -180; i < 180; i += 20) {
+        var p = this.proj.projectMeridian(Math.PI*i/180);
+        ctx.beginPath();
+        switch (p.type) {
+        case 'line':
+            ctx.moveTo(halfsize+p.x-halfsize*p.vx,
+                       halfsize+p.y-halfsize*p.vy);
+            ctx.lineTo(halfsize+p.x+halfsize*p.vx,
+                       halfsize+p.y+halfsize*p.vy);
+            break;
+        case 'circle':
+            ctx.arc(halfsize+p.x, halfsize-p.y, p.r,
+                    0, 2*Math.PI, true);
+            break;
+        }
+        ctx.stroke();
+    }
+
+    // Constellations
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
     for (j = clen; j--; ) {
         var s = co[j][0], e = co[j][1];
         var so = ortho[s], eo = ortho[e];
@@ -171,9 +269,9 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             ctx.lineTo((eo[1]+halfsize), (halfsize-eo[2]));
         }
     }
-    
     ctx.stroke();
-    
+
+    // Stars
     ctx.fillStyle = '#FFF';
     for (i = 0; i < slen; ++i) {
         var s = ortho[i];
@@ -186,6 +284,33 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         }
     }
 
+    function messierColor(mag) {
+        var v = Math.min(15, Math.floor(19-mag));
+        var h = v.toString(16);
+        return '#'+h+h+h;
+    }
+
+    // Draw Messier objects
+    if (this.prop && this.prop.messier) {
+        var messier = this.prop.messier;
+        var mlen = messier.length, cc, cm;
+        for (i = 0; i < mlen; ++i) {
+            cc = messier[i];
+            cm = this.proj.projectObj(cc[4], 15*cc[3]);
+            if (cm[2]) {
+                var xx = cm[0]+halfsize, yy = halfsize-cm[1];
+                ctx.beginPath();
+                if (this.prop.messier_colors && this.prop.messier_colors[messier[i][2]]) {
+                    ctx.strokeStyle = this.prop.messier_colors[cc[2]];
+                } else {
+                    ctx.strokeStyle = messierColor(cc[5]);
+                }
+                ctx.arc(xx, yy, 4, 0, 2*Math.PI, true);
+                ctx.stroke();
+            }
+        }
+    }
+
     // Draw planets
     if (this.planets) {
         var jct = Ti.mjd2jct(mjd);
@@ -193,9 +318,9 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         var equ2ecl = StarJs.Coord.ecl2equMatrix(jct);
         for (i = 0; i < StarMap.PLANETS.length; ++i) {
             var planet = StarMap.PLANETS[i];
-            var cc = planet.getCoord(jct, earthPos, equ2ecl);
+            cc = planet.getCoord(jct, earthPos, equ2ecl);
             
-            var cm = stereographicProjectObj(cc.theta, cc.phi, lat, lon, this.size/2);
+            cm = this.proj.projectObj(cc.theta, cc.phi);
             if (cm[2]) {
                 ctx.beginPath();
                 ctx.fillStyle = planet.color;
