@@ -234,8 +234,9 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                        halfsize+p.y+halfsize*p.vy);
             break;
         case 'circle':
-            ctx.arc(halfsize+p.x, halfsize-p.y, p.r,
-                    0, 2*Math.PI, true);
+            if (p.r > 0) {
+                ctx.arc(halfsize+p.x, halfsize-p.y, p.r, 0, 2*Math.PI, true);
+            }
             break;
         }
         ctx.stroke();
@@ -251,8 +252,10 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                        halfsize+p.y+halfsize*p.vy);
             break;
         case 'circle':
-            ctx.arc(halfsize+p.x, halfsize-p.y, p.r,
-                    0, 2*Math.PI, true);
+            if (p.r > 0) {
+                ctx.arc(halfsize+p.x, halfsize-p.y, p.r,
+                        0, 2*Math.PI, true);
+            }
             break;
         }
         ctx.stroke();
