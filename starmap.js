@@ -261,6 +261,26 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         ctx.stroke();
     }
 
+    // Constellation boundaries
+    var cstn = null;
+    ctx.strokeStyle = '#224';
+    for (j = 0; j < CON_BOUND_20.length; ++j) {
+        var l = CON_BOUND_20[j];
+        p = this.proj.projectObj(Math.PI*l[1]/180, 15*Math.PI*l[0]/180);
+        if (cstn === l[2]) {
+            ctx.lineTo(halfsize+p[0], halfsize-p[1]);
+        } else {
+            if (cstn !== null) {
+                ctx.closePath();
+                ctx.stroke();
+            } else {
+                ctx.beginPath();
+            }
+            ctx.moveTo(halfsize+p[0], halfsize-p[1]);
+            cstn = l[2];
+        }
+    }
+
     // Constellations
     ctx.beginPath();
     ctx.strokeStyle = 'rgba(255,255,255,0.4)';
