@@ -111,9 +111,67 @@ StereographicProjection.prototype.projectObj = function (re, de) {
     var cosc = Math.cos(re), sinc = Math.sin(re);
     var cosl = Math.cos(de), sinl = Math.sin(de);
     var k = rad / (1.0 + sphi * sinc + cphi * cosc * cosl);
-    var x = k * cosc * sinl, y = k * (cphi * sinc - sphi * cosc * cosl);
+    var x = k * cosc * sinl, y = - k * (cphi * sinc - sphi * cosc * cosl);
     return [x, y, x*x + y*y < rad*rad];
 }
+
+StereographicProjection.prototype.projectSegment = function (ra1, de1, ra2, de2) {
+/*
+
+Produced by Maxima 5.18.1:
+
+(%i1) z1: re1 + %i*im1;
+(%o1)                            re1 + %i im1
+(%i2) z2: re2 + %i*im2;
+(%o2)                            re2 + %i im2
+(%i3) z0: ((abs(z1)^2-1)*z2 - (abs(z2)^2-1)*z1)/(conjugate(z1)*z2 - z1*conjugate(z2));
+          2      2                                          2      2
+      (re1  + im1  - 1) (re2 + %i im2) - (re1 + %i im1) (re2  + im2  - 1)
+(%o3) -------------------------------------------------------------------
+         (re1 - %i im1) (re2 + %i im2) - (re1 + %i im1) (re2 - %i im2)
+(%i4) realpart(z0);
+                         2      2                2      2
+                 im2 (re1  + im1  - 1) - im1 (re2  + im2  - 1)
+(%o4)            ---------------------------------------------
+                             2 im2 re1 - 2 im1 re2
+(%i5) imagpart(z0);
+                      2      2                    2      2
+                  (re1  + im1  - 1) re2 - re1 (re2  + im2  - 1)
+(%o5)           - ---------------------------------------------
+                              2 im2 re1 - 2 im1 re2
+*/
+
+    function s(x) { return x*x; }
+
+    var p1 = this.projectObj(de1, ra1), p2 = this.projectObj(de2, ra2);
+
+    var re1 = p1[0]/this.rad, im1 = p1[1]/this.rad;
+    var re2 = p2[0]/this.rad, im2 = p2[1]/this.rad;
+
+    var a1 = re1*re1 + im1*im1 - 1;
+    var a2 = re2*re2 + im2*im2 - 1;
+
+    var ha1 =   a1 * im2 - a2 * im1;
+    var ha2 = - a1 * re2 + a2 * re1;
+
+    var d = 2*(im2 * re1 - im1 * re2);
+    // find center
+    var c1 = ha1 / d;
+    var c2 = ha2 / d;
+
+    // find radius
+    var r = Math.sqrt(1 + c1*c1 + c2*c2);
+    // find angles
+    var a1 = Math.atan2(im1 - c2, re1 - c1);
+    var a2 = Math.atan2(im2 - c2, re2 - c1);
+    return {
+        'cx': c1*this.rad, 'cy': c2*this.rad,
+        'a1': a1, 'a2': a2,
+        'p1': p1, 'p2': p2,
+        'r': r*this.rad
+    };
+}
+
 
 /**
  * Celestial map component.
@@ -263,12 +321,12 @@ StarMap.prototype.setPos = function (lat, lon, time) {
 
     // Constellation boundaries
     var cstn = null;
-    ctx.strokeStyle = '#224';
+    ctx.strokeStyle = '#424';
     for (j = 0; j < CON_BOUND_20.length; ++j) {
         var l = CON_BOUND_20[j];
         p = this.proj.projectObj(Math.PI*l[1]/180, 15*Math.PI*l[0]/180);
         if (cstn === l[2]) {
-            ctx.lineTo(halfsize+p[0], halfsize-p[1]);
+            ctx.lineTo(halfsize+p[0], halfsize+p[1]);
         } else {
             if (cstn !== null) {
                 ctx.closePath();
@@ -276,14 +334,14 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             } else {
                 ctx.beginPath();
             }
-            ctx.moveTo(halfsize+p[0], halfsize-p[1]);
+            ctx.moveTo(halfsize+p[0], halfsize+p[1]);
             cstn = l[2];
         }
     }
 
     // Constellations
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
     for (j = clen; j--; ) {
         var s = co[j][0], e = co[j][1];
         var so = ortho[s], eo = ortho[e];
@@ -347,7 +405,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             if (cm[2]) {
                 ctx.beginPath();
                 ctx.fillStyle = planet.color;
-                var xx = cm[0]+halfsize, yy = halfsize-cm[1];
+                var xx = cm[0]+halfsize, yy = halfsize + cm[1];
                 ctx.arc(xx, yy, planet.size/2,
                         0, 2*Math.PI, true);
                 ctx.fill();
@@ -365,6 +423,13 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             }
         }
     }
+//     var test = this.proj.projectSegment(0, 0.4*Math.PI, 0.3, 0.4*Math.PI);
+//     console.debug(test);
+//     ctx.beginPath();
+//     ctx.strokeStyle = 'red';
+//     ctx.arc(test.cx + halfsize, test.cy + halfsize, test.r,
+//             test.a1, test.a2, true);
+//     ctx.stroke();
 };
 
 window['StarMap']=StarMap;
