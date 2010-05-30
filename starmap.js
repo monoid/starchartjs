@@ -226,6 +226,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     for (i = -80; i < 90; i += 10) {
         var p = this.proj.projectParallel(Math.PI*i/180);
         ctx.beginPath();
+        ctx.lineWidth = (i === 0) ? 1.6 : 1;
         switch (p.type) {
         case 'line':
             ctx.moveTo(halfsize+p.x-halfsize*p.vx,
@@ -241,9 +242,11 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         }
         ctx.stroke();
     }
-    for (i = -180; i < 180; i += 15) {
+    // TODO What a strange range?  from -90 to 90 doesn't work :(
+    for (i = -120; i <= 90; i += 15) {
         var p = this.proj.projectMeridian(Math.PI*i/180);
         ctx.beginPath();
+        ctx.lineWidth = (i === 0) ? 1.6 : 1;
         switch (p.type) {
         case 'line':
             ctx.moveTo(halfsize+p.x-halfsize*p.vx,
@@ -260,6 +263,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         }
         ctx.stroke();
     }
+    ctx.lineWidth = 1;
 
     // Constellations
     ctx.beginPath();
