@@ -267,7 +267,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
 
     // Constellations
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
     for (j = clen; j--; ) {
         var s = co[j][0], e = co[j][1];
         var so = ortho[s], eo = ortho[e];
