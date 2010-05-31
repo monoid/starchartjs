@@ -165,11 +165,30 @@ Produced by Maxima 5.18.1:
     var a1 = Math.atan2(im1 - c2, re1 - c1);
     var a2 = Math.atan2(im2 - c2, re2 - c1);
     return {
-        'cx': c1*this.rad, 'cy': c2*this.rad,
+        'type': 'circle',
+        'x': c1*this.rad, 'y': c2*this.rad,
         'a1': a1, 'a2': a2,
         'p1': p1, 'p2': p2,
         'r': r*this.rad
     };
+}
+
+
+StereographicProjection.prototype.projectParallelSegment = function (lam1, lam2, phi) {
+    var p = this.projectParallel(phi);
+    var p1 = this.projectObj(phi, lam1), p2 = this.projectObj(phi, lam2);
+    if (p.type === 'circle') {
+        p.y = - p.y;
+        p.a1 = Math.atan2(p1[1] - p.y, p1[0] - p.x);
+        p.a2 = Math.atan2(p2[1] - p.y, p2[0] - p.x);
+        return p;
+    } else {
+        return {
+            type: 'line',
+            x1: p1[0], y1: p1[1],
+            x2: p2[0], y2: p2[1]
+        };
+    }
 }
 
 
@@ -322,21 +341,43 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     // Constellation boundaries
     var cstn = null;
     ctx.strokeStyle = '#424';
-    for (j = 0; j < CON_BOUND_20.length; ++j) {
-        var l = CON_BOUND_20[j];
-        p = this.proj.projectObj(Math.PI*l[1]/180, 15*Math.PI*l[0]/180);
+    var prev = null;
+    for (j = 0; j < CON_BOUND_18.length; ++j) {
+        var l = CON_BOUND_18[j];
         if (cstn === l[2]) {
-            ctx.lineTo(halfsize+p[0], halfsize+p[1]);
-        } else {
-            if (cstn !== null) {
-                ctx.closePath();
-                ctx.stroke();
+            var seg;
+            if (prev[1] === l[1]) {
+                seg = this.proj.projectParallelSegment(
+                    15*Math.PI*prev[0]/180,
+                    15*Math.PI*l[0]/180,
+                    Math.PI*l[1]/180
+                );
             } else {
-                ctx.beginPath();
+                seg = this.proj.projectSegment(Math.PI*prev[1]/180,
+                                               15*Math.PI*prev[0]/180,
+                                               Math.PI*l[1]/180,
+                                               15*Math.PI*l[0]/180);
             }
-            ctx.moveTo(halfsize+p[0], halfsize+p[1]);
+            ctx.beginPath();
+            ctx.strokeStyle = 'red';
+            switch (seg.type) {
+            case 'circle':   
+                ctx.arc(halfsize+seg.x, halfsize+seg.y,
+                        seg.r,
+                        seg.a1, seg.a2, seg.a1>seg.a2);
+                break;
+            case 'line':
+                ctx.moveTo(halfsize+seg.x1, halfsize+seg.y1);
+                ctx.lineTo(halfsize+seg.x2, halfsize+seg.y2);
+                break;
+            }
+            ctx.stroke();
+        } else {
+            // TODO: draw a closing arc.
+            prev = l;
             cstn = l[2];
         }
+        prev = l;
     }
 
     // Constellations
@@ -427,7 +468,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
 //     console.debug(test);
 //     ctx.beginPath();
 //     ctx.strokeStyle = 'red';
-//     ctx.arc(test.cx + halfsize, test.cy + halfsize, test.r,
+//     ctx.arc(test.x + halfsize, test.y + halfsize, test.r,
 //             test.a1, test.a2, true);
 //     ctx.stroke();
 };
