@@ -143,7 +143,7 @@ Produced by Maxima 5.18.1:
 
     function s(x) { return x*x; }
 
-    var p1 = this.projectObj(de1, ra1), p2 = this.projectObj(de2, ra2);
+    var p1 = this.projectObj(ra1, de1), p2 = this.projectObj(ra2, de2);
 
     var re1 = p1[0]/this.rad, im1 = p1[1]/this.rad;
     var re2 = p2[0]/this.rad, im2 = p2[1]/this.rad;
