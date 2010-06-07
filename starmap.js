@@ -115,6 +115,26 @@ StereographicProjection.prototype.projectObj = function (re, de) {
     return [x, y, x*x + y*y < rad*rad];
 }
 
+/* TODO: projecting number of cirles with same radius. */
+StereographicProjection.prototype.projectCircle = function (re, de, alpha) {
+    var r = Math.tan(alpha/2);
+    var p = this.projectObj(re, de);
+    p[0]/=this.rad;
+    p[1]/=this.rad;
+
+    var aa2 = p[0]*p[0]+p[1]*p[1];
+    var denom = 1 - aa2*r*r;
+
+    var rad = r*Math.sqrt((aa2+1)/denom);
+    var cx = p[0]*(1+r*r)/denom;
+    var cy = p[1]*(1+r*r)/denom;
+    return {
+        'type': 'circle',
+        'x': this.rad*cx, 'y': this.rad*cy,
+        'rad': this.rad*rad
+    };
+}
+
 /**
  * Celestial map component.
  * @constructor
