@@ -213,6 +213,43 @@ StarMap.PLANETS = [
 
 StarMap.EARTH = StarJs.Solar.BODIES.Earth;
 
+StarMap.prototype.drawTelrad = function (ctx, lat, lon) {
+    var g05 = this.proj.projectCircle(lat, lon, 0.5/180*Math.PI);
+    var g20 = this.proj.projectCircle(lat, lon, 2.0/180*Math.PI);
+    var g40 = this.proj.projectCircle(lat, lon, 4.0/180*Math.PI);
+
+    var h = Math.floor(this.size/2);
+
+    ctx.strokeStyle = 'rgba(255,0,0,0.6)';
+    ctx.lineWidth = g40.rad/9;
+
+    function drawBullEye(g) {
+        var D = 0.15;
+        ctx.beginPath();
+        ctx.arc(h+g.x, h-g.y, g.rad, D, 0.5*Math.PI-D, false);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(h+g.x, h-g.y, g.rad, 0.5*Math.PI+D, Math.PI-D, false);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(h+g.x, h-g.y, g.rad, Math.PI+D, 1.5*Math.PI-D, false);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(h+g.x, h-g.y, g.rad, 1.5*Math.PI+D, 2*Math.PI-D, false);
+        ctx.stroke();
+    }
+
+    ctx.beginPath();
+    ctx.arc(h+g05.x, h-g05.y, g05.rad, 0, 2*Math.PI, true);
+    ctx.stroke();
+
+    drawBullEye(g20);
+    drawBullEye(g40);
+}
+
 StarMap.prototype.setPos = function (lat, lon, time) {
     var Ti = StarJs.Time;
 
@@ -368,6 +405,12 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             }
         }
     }
+
+    // Draw sample telrads
+    var tel = {'x': 0.901, 'y': 0.451};
+    this.drawTelrad(ctx, tel.x, tel.y);
+    tel = {'x': 0.301, 'y': 2.151};
+    this.drawTelrad(ctx, tel.x, tel.y);
 };
 
 window['StarMap']=StarMap;
