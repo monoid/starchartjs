@@ -334,6 +334,15 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     }
     ctx.stroke();
 
+    // Draw eqliptics
+    var eqlp = this.proj.projectCircle(113.43920111 * StarJs.Math.DEG2RAD, Math.PI/2, Math.PI/2);
+    if (eqlp.type === 'circle') {
+        ctx.beginPath();
+        ctx.strokeStyle = 'yellow';
+        ctx.arc(eqlp.x+halfsize, halfsize-eqlp.y, eqlp.rad, 0, 2*Math.PI, true);
+        ctx.stroke();
+    }
+
     // Stars
     ctx.fillStyle = '#FFF';
     for (i = 0; i < slen; ++i) {
