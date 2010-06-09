@@ -335,7 +335,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     ctx.stroke();
 
     // Draw ecliptics
-    var eclp = this.proj.projectCircle(Math.PI/2 + 23.43920111 * StarJs.Math.DEG2RAD, Math.PI/2, Math.PI/2);
+    var eclp = this.proj.projectCircle(Math.PI/2 + StarJs.Solar.EPS, Math.PI/2, Math.PI/2);
     if (eclp.type === 'circle') {
         ctx.beginPath();
         ctx.strokeStyle = 'yellow';
