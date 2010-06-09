@@ -125,7 +125,7 @@ StereographicProjection.prototype.projectCircle = function (re, de, alpha) {
     var aa2 = p[0]*p[0]+p[1]*p[1];
     var denom = 1 - aa2*r*r;
 
-    var rad = r*Math.sqrt((aa2+1)/denom);
+    var rad = r*(aa2+1)/denom;
     var cx = p[0]*(1+r*r)/denom;
     var cy = p[1]*(1+r*r)/denom;
     return {
