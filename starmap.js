@@ -410,9 +410,15 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     }
     ctx.lineWidth = 1;
 
+    function angSep(a1, a2) {
+        return StarJs.Math.mod(a1-a2, 2 * Math.PI);
+    };
     // Constellation boundaries
     var cstn = null;
-    ctx.strokeStyle = '#424';
+    // TODO: make a = 0.5 after boundaries line merging.  Now many
+    // lines are drawn twice, and they color differs (somewhat
+    // brighter) if alpha is used.
+    ctx.strokeStyle = 'rgba(128,0,128,1)';
     var prev = null;
     for (j = 0; j < CON_BOUND_18.length; ++j) {
         var l = CON_BOUND_18[j];
@@ -431,14 +437,21 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                                                15*Math.PI*l[0]/180);
             }
             ctx.beginPath();
-            ctx.strokeStyle = 'red';
             switch (seg.type) {
             case 'circle':   
                 ctx.arc(halfsize+seg.x, halfsize+seg.y,
                         seg.r,
-                        seg.a1, seg.a2, seg.a1>seg.a2);
+                        seg.a1, seg.a2,
+                        // TODO: angular sepration of unprojected
+                        // lines.  Projected circles sometimes give
+                        // wrong result due to distortion.
+                        angSep(seg.a1,seg.a2) < angSep(seg.a2,seg.a1));
                 break;
             case 'line':
+                // TODO sometimes lines shouldn't be drawn if their
+                // central point pass through infinity, or at least
+                // they should be drawn more intelligently.  Can be
+                // such lines wisible in viewport?
                 ctx.moveTo(halfsize+seg.x1, halfsize+seg.y1);
                 ctx.lineTo(halfsize+seg.x2, halfsize+seg.y2);
                 break;
