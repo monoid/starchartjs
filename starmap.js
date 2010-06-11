@@ -171,7 +171,7 @@ Produced by Maxima 5.18.1:
         'p1': p1, 'p2': p2,
         'r': r*this.rad
     };
-}
+};
 
 
 StereographicProjection.prototype.projectParallelSegment = function (lam1, lam2, phi) {
@@ -189,7 +189,38 @@ StereographicProjection.prototype.projectParallelSegment = function (lam1, lam2,
             x2: p2[0], y2: p2[1]
         };
     }
-}
+};
+
+
+/** Project circle centered at point p (already projected to plane)
+ * with angular radius alpha.
+ *
+ * p is usually result of StereographicProjection.prototype.projectObj.
+ */
+StereographicProjection.prototype.projectCircle2 = function (p, alpha) {
+    var r = Math.tan(alpha/2);
+
+    var aa2 = (p[0]*p[0]+p[1]*p[1])/(this.rad*this.rad);
+    var denom = 1 - aa2*r*r;
+
+    var rad = r*(aa2+1)/denom;
+    var cx = p[0]*(1+r*r)/denom;
+    var cy = p[1]*(1+r*r)/denom;
+
+    return {
+        'type': 'circle',
+        'x': cx, 'y': cy,
+        'rad': this.rad*rad
+    };
+};
+
+/** Project circle centered at (re, de) on the sphere with angular
+ * radius alpha.
+ */
+StereographicProjection.prototype.projectCircle = function (re, de, alpha) {
+    var p = this.projectObj(re, de);
+    return this.projectCircle2(p, alpha);
+};
 
 
 /**
@@ -270,6 +301,44 @@ StarMap.PLANETS = [
 
 StarMap.EARTH = StarJs.Solar.BODIES.Earth;
 
+StarMap.prototype.drawTelrad = function (ctx, lat, lon) {
+    var p = this.proj.projectObj(lat, lon);
+    var g05 = this.proj.projectCircle2(p, 0.5/180*Math.PI);
+    var g20 = this.proj.projectCircle2(p, 2.0/180*Math.PI);
+    var g40 = this.proj.projectCircle2(p, 4.0/180*Math.PI);
+
+    var h = Math.floor(this.size/2);
+
+    ctx.strokeStyle = 'rgba(255,0,0,0.6)';
+    ctx.lineWidth = g40.rad/9;
+
+    function drawBullEye(g) {
+        var D = 0.15;
+        ctx.beginPath();
+        ctx.arc(h+g.x, h+g.y, g.rad, D, 0.5*Math.PI-D, false);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(h+g.x, h+g.y, g.rad, 0.5*Math.PI+D, Math.PI-D, false);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(h+g.x, h+g.y, g.rad, Math.PI+D, 1.5*Math.PI-D, false);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(h+g.x, h+g.y, g.rad, 1.5*Math.PI+D, 2*Math.PI-D, false);
+        ctx.stroke();
+    }
+
+    ctx.beginPath();
+    ctx.arc(h+g05.x, h+g05.y, g05.rad, 0, 2*Math.PI, true);
+    ctx.stroke();
+
+    drawBullEye(g20);
+    drawBullEye(g40);
+}
+
 StarMap.prototype.setPos = function (lat, lon, time) {
     var Ti = StarJs.Time;
 
@@ -303,6 +372,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     for (i = -80; i < 90; i += 10) {
         var p = this.proj.projectParallel(Math.PI*i/180);
         ctx.beginPath();
+        ctx.lineWidth = (i === 0) ? 1.7 : 1;
         switch (p.type) {
         case 'line':
             ctx.moveTo(halfsize+p.x-halfsize*p.vx,
@@ -321,6 +391,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     for (i = -180; i < 180; i += 15) {
         var p = this.proj.projectMeridian(Math.PI*i/180);
         ctx.beginPath();
+        ctx.lineWidth = (i === 0 || i === -180) ? 1.7 : 1;
         switch (p.type) {
         case 'line':
             ctx.moveTo(halfsize+p.x-halfsize*p.vx,
@@ -337,6 +408,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         }
         ctx.stroke();
     }
+    ctx.lineWidth = 1;
 
     // Constellation boundaries
     var cstn = null;
@@ -393,6 +465,15 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     }
     ctx.stroke();
 
+    // Draw ecliptics
+    var eclp = this.proj.projectCircle(Math.PI/2 + StarJs.Solar.EPS, Math.PI/2, Math.PI/2);
+    if (eclp.type === 'circle') {
+        ctx.beginPath();
+        ctx.strokeStyle = 'yellow';
+        ctx.arc(eclp.x+halfsize, halfsize+eclp.y, eclp.rad, 0, 2*Math.PI, true);
+        ctx.stroke();
+    }
+
     // Stars
     ctx.fillStyle = '#FFF';
     for (i = 0; i < slen; ++i) {
@@ -420,7 +501,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             cc = messier[i];
             cm = this.proj.projectObj(cc[4], 15*cc[3]);
             if (cm[2]) {
-                var xx = cm[0]+halfsize, yy = halfsize-cm[1];
+                var xx = cm[0]+halfsize, yy = halfsize+cm[1];
                 ctx.beginPath();
                 if (this.prop.messier_colors && this.prop.messier_colors[messier[i][2]]) {
                     ctx.strokeStyle = this.prop.messier_colors[cc[2]];
@@ -464,13 +545,12 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             }
         }
     }
-//     var test = this.proj.projectSegment(0, 0.4*Math.PI, 0.3, 0.4*Math.PI);
-//     console.debug(test);
-//     ctx.beginPath();
-//     ctx.strokeStyle = 'red';
-//     ctx.arc(test.x + halfsize, test.y + halfsize, test.r,
-//             test.a1, test.a2, true);
-//     ctx.stroke();
+
+    // Draw sample telrads
+    var tel = {'x': 0.901, 'y': 0.451};
+    this.drawTelrad(ctx, tel.x, tel.y);
+    tel = {'x': 0.301, 'y': 2.151};
+    this.drawTelrad(ctx, tel.x, tel.y);
 };
 
 window['StarMap']=StarMap;
