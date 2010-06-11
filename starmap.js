@@ -115,14 +115,15 @@ StereographicProjection.prototype.projectObj = function (re, de) {
     return [x, y, x*x + y*y < rad*rad];
 }
 
-/* TODO: projecting number of cirles with same radius. */
-StereographicProjection.prototype.projectCircle = function (re, de, alpha) {
+/** Project circle centered at point p (already projected to plane)
+ * with angular radius alpha.
+ *
+ * p is usually result of StereographicProjection.prototype.projectObj.
+ */
+StereographicProjection.prototype.projectCircle2 = function (p, alpha) {
     var r = Math.tan(alpha/2);
-    var p = this.projectObj(re, de);
-    p[0]/=this.rad;
-    p[1]/=this.rad;
 
-    var aa2 = p[0]*p[0]+p[1]*p[1];
+    var aa2 = (p[0]*p[0]+p[1]*p[1])/(this.rad*this.rad);
     var denom = 1 - aa2*r*r;
 
     var rad = r*(aa2+1)/denom;
@@ -130,9 +131,17 @@ StereographicProjection.prototype.projectCircle = function (re, de, alpha) {
     var cy = p[1]*(1+r*r)/denom;
     return {
         'type': 'circle',
-        'x': this.rad*cx, 'y': this.rad*cy,
+        'x': cx, 'y': cy,
         'rad': this.rad*rad
     };
+};
+
+/** Project circle centered at (re, de) on the sphere with angular
+ * radius alpha.
+ */
+StereographicProjection.prototype.projectCircle = function (re, de, alpha) {
+    var p = this.projectObj(re, de);
+    return this.projectCircle2(p, alpha);
 }
 
 /**
@@ -214,9 +223,10 @@ StarMap.PLANETS = [
 StarMap.EARTH = StarJs.Solar.BODIES.Earth;
 
 StarMap.prototype.drawTelrad = function (ctx, lat, lon) {
-    var g05 = this.proj.projectCircle(lat, lon, 0.5/180*Math.PI);
-    var g20 = this.proj.projectCircle(lat, lon, 2.0/180*Math.PI);
-    var g40 = this.proj.projectCircle(lat, lon, 4.0/180*Math.PI);
+    var p = this.proj.projectObj(lat, lon);
+    var g05 = this.proj.projectCircle2(p, 0.5/180*Math.PI);
+    var g20 = this.proj.projectCircle2(p, 2.0/180*Math.PI);
+    var g40 = this.proj.projectCircle2(p, 4.0/180*Math.PI);
 
     var h = Math.floor(this.size/2);
 
