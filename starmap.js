@@ -430,6 +430,58 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     this.drawTelrad(ctx, tel.x, tel.y);
     tel = {'x': 0.301, 'y': 2.151};
     this.drawTelrad(ctx, tel.x, tel.y);
+
+    // Draw path of C/2009 R1 (McNaught)
+    var C2009R1_DA = ["2010 05 04", "2010 05 09", "2010 05 14",
+                      "2010 05 19", "2010 05 24", "2010 05 29",
+                      "2010 06 03", "2010 06 08", "2010 06 13",
+                      "2010 06 18", "2010 06 23", "2010 06 28",
+                      "2010 07 03", "2010 07 08", "2010 07 13",
+                      "2010 07 18", "2010 07 23", "2010 07 28"];
+    var C2009R1_RA = [23+35.99/60.0, 23+48.09/60.0,  0+ 2.04/60.0,
+                       0+18.56/60.0,  0+38.69/60.0,  1+ 4.06/60.0,
+                       1+37.04/60.0,  2+20.73/60.0,  3+17.79/60.0,
+                       4+26.49/60.0,  5+37.00/60.0,  6+36.84/60.0,
+                       7+20.69/60.0,  7+50.73/60.0,  8+11.73/60.0,
+                       8+27.57/60.0,  8+40.53/60.0,  8+51.84/60.0];
+    var C2009R1_DE = [ 9+56.1/60.0, 13+11.8/60.0, 16+53.6/60.0,
+                      21+ 5.1/60.0, 25+48.9/60.0, 31+ 3.2/60.0,
+                      36+37.2/60.0, 42+ 1.6/60.0, 46+19.9/60.0,
+                      48+14.0/60.0, 46+44.8/60.0, 42+ 0.7/60.0,
+                      35+ 8.7/60.0, 27+30.3/60.0, 20+ 4.7/60.0,
+                      13+16.4/60.0, 07+ 8.3/60.0,  1+35.8/60.0];
+    ctx.fillStyle = 'green';
+    ctx.strokeStyle = 'green';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (i = 0; i < C2009R1_DE.length; ++i) {
+        var cp = this.proj.projectObj(Math.PI*C2009R1_DE[i]/180.0,
+                                      Math.PI*C2009R1_RA[i]/12.0);
+        if (cp[2]) {
+            xx = cp[0]+halfsize;
+            yy = halfsize-cp[1];
+            ctx.lineTo(xx, yy);
+        }
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = '#8F8';
+    ctx.strokeStyle = '#8F8';
+    // We recalculate same data, but this is just a sample, nevermind.
+    for (i = 0; i < C2009R1_DE.length; ++i) {
+        var cp = this.proj.projectObj(Math.PI*C2009R1_DE[i]/180.0,
+                                      Math.PI*C2009R1_RA[i]/12.0);
+        if (cp[2]) {
+            xx = cp[0]+halfsize;
+            yy = halfsize-cp[1];
+            ctx.beginPath();
+            ctx.arc(xx, yy, 2, 0, 2*Math.PI, true);
+            ctx.fill();
+            if (ctx.fillText) {
+                ctx.fillText(C2009R1_DA[i], xx, yy - 4);
+            }
+        }
+    }
 };
 
 window['StarMap']=StarMap;
