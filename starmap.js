@@ -8,11 +8,11 @@ function StereographicProjection (phi1, lam1, rad) {
 StereographicProjection.prototype.setCoords = function (phi1, lam1) {
     this.phi1 = phi1;
     this.lam1 = lam1;
-}
+};
 
 StereographicProjection.prototype.setRadius = function (rad) {
     this.rad = rad;
-}
+};
 
 StereographicProjection.prototype.projectPoints = function (arr, rad) {
     function sinSum(cosa, sina, cosb, sinb) {
@@ -75,7 +75,7 @@ StereographicProjection.prototype.projectMeridian = function (lam) {
             'r': rho
         };
     }
-}
+};
 
 StereographicProjection.prototype.projectParallel = function (phi) {
     var lam1 = this.lam1;
@@ -100,7 +100,7 @@ StereographicProjection.prototype.projectParallel = function (phi) {
             'r': R*Math.cos(phi)/s
         };
     }
-}
+};
 
 StereographicProjection.prototype.projectObj = function (re, de) {
     var lam1 = this.lam1;
@@ -113,7 +113,7 @@ StereographicProjection.prototype.projectObj = function (re, de) {
     var k = rad / (1.0 + sphi * sinc + cphi * cosc * cosl);
     var x = k * cosc * sinl, y = k * (cphi * sinc - sphi * cosc * cosl);
     return [x, y, x*x + y*y < rad*rad];
-}
+};
 
 /** Project circle centered at point p (already projected to plane)
  * with angular radius alpha.
@@ -142,7 +142,7 @@ StereographicProjection.prototype.projectCircle2 = function (p, alpha) {
 StereographicProjection.prototype.projectCircle = function (re, de, alpha) {
     var p = this.projectObj(re, de);
     return this.projectCircle2(p, alpha);
-}
+};
 
 /**
  * Celestial map component.
@@ -193,12 +193,12 @@ StarMap.Planet = function (pl, size, color) {
 StarMap.Planet.prototype.getCoord = function (jct, earthPos, equ2ecl) {
     var pos = this.pl.keplerCoord(jct);
     return new StarJs.Vector.Polar3(equ2ecl.apply(pos.sub(earthPos)))
-}
+};
 
 StarMap.Moon = function (size, color) {
     this.size = size;
     this.color = color;
-}
+};
 
 StarMap.Moon.prototype.pl = { name: 'Moon' };
 
@@ -206,7 +206,7 @@ StarMap.Moon.prototype.getCoord = function (jct, earthPos, equ2ecl) {
     // earthPos and equ2ecl are ignored
     var pos = StarJs.Solar.approxMoon(jct);
     return {'phi': pos.ra, 'theta': pos.dec};
-}
+};
 
 StarMap.PLANETS = [
     new StarMap.Planet(StarJs.Solar.BODIES.Sun, 20, '#FF0'),
@@ -258,7 +258,7 @@ StarMap.prototype.drawTelrad = function (ctx, lat, lon) {
 
     drawBullEye(g20);
     drawBullEye(g40);
-}
+};
 
 StarMap.prototype.setPos = function (lat, lon, time) {
     var Ti = StarJs.Time;
