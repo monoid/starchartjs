@@ -72,7 +72,7 @@ StereographicProjection.prototype.projectMeridian = function (lam) {
             'type': 'circle',
             'x': x,
             'y': y,
-            'r': rho
+            'r': Math.abs(rho)
         };
     }
 };
@@ -97,7 +97,7 @@ StereographicProjection.prototype.projectParallel = function (phi) {
             'type': 'circle',
             'x': 0,
             'y': R*Math.cos(phi1)/s,
-            'r': R*Math.cos(phi)/s
+            'r': Math.abs(R*Math.cos(phi)/s)
         };
     }
 };
@@ -302,14 +302,12 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                        halfsize+p.y+halfsize*p.vy);
             break;
         case 'circle':
-            if (p.r > 0) {
-                ctx.arc(halfsize+p.x, halfsize-p.y, p.r, 0, 2*Math.PI, true);
-            }
+            ctx.arc(halfsize+p.x, halfsize-p.y, p.r, 0, 2*Math.PI, true);
             break;
         }
         ctx.stroke();
     }
-    for (i = -180; i < 180; i += 15) {
+    for (i = 0; i < 180; i += 15) {
         var p = this.proj.projectMeridian(Math.PI*i/180);
         ctx.beginPath();
         ctx.lineWidth = (i === 0 || i === -180) ? 1.7 : 1;
@@ -321,10 +319,8 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                        halfsize+p.y+halfsize*p.vy);
             break;
         case 'circle':
-            if (p.r > 0) {
-                ctx.arc(halfsize+p.x, halfsize-p.y, p.r,
-                        0, 2*Math.PI, true);
-            }
+            ctx.arc(halfsize+p.x, halfsize-p.y, p.r,
+                    0, 2*Math.PI, true);
             break;
         }
         ctx.stroke();
