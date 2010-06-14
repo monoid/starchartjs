@@ -144,6 +144,52 @@ StereographicProjection.prototype.projectCircle = function (re, de, alpha) {
     return this.projectCircle2(p, alpha);
 };
 
+
+/** Inverse projection of a single point.
+ */
+StereographicProjection.prototype.inverseObj = function (x, y) {
+    var lam1 = this.lam1;
+    var phi1 = this.phi1;
+
+    var cp1 = Math.cos(phi1), sp1 = Math.sin(phi1);
+
+    var rho2 = x*x + y*y;
+    if (rho2 > this.rad*this.rad) {
+        // Point is out of map
+        return null;
+    }
+    if (rho2 < 1e-18) {
+        return {
+            're': lam1,
+            'de': phi1
+        };
+    } else {
+        var rho = Math.sqrt(rho2);
+        var c = 2*Math.atan(rho/this.rad);
+        var cosc = Math.cos(c);
+        var sinc = Math.sin(c);
+        var phi = Math.asin(cosc*sp1
+                            + (y*sinc*cp1/rho));
+        var lam;
+        if (Math.abs(phi1-Math.PI) < 1e-9) {
+            // phi1 = PI
+            lam = lam1 - Math.atan2(x, -y);
+        } else if (Math.abs(this.phi - (-Math.PI)) < 1e-9) {
+            // phi1 = -PI
+            lam = lam1 - Math.atan2(x, y);
+        } else {
+            lam = lam1 - Math.atan2(x*sinc,
+                                    rho*cp1*cosc - y*sp1*sinc);
+        }
+        lam = StarJs.Math.mod(lam, 2*Math.PI);
+        phi = StarJs.Math.mod(phi+Math.PI, 2*Math.PI)-Math.PI;
+        return {
+            're': lam,
+            'de': phi
+        };
+    }
+};
+
 /**
  * Celestial map component.
  * @constructor

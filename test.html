@@ -9,6 +9,7 @@
     <!-- dammit, width and height cannot be replaced by CSS's width --
       -- and height. -->
     <canvas id="test-map800" width="800" height="800"></canvas>
+    <div id="coord"></div>
     <script type="text/javascript" src="lib/starjs.min.js"></script>
     <script type="text/javascript" src="constellations-rey60.js"></script>
     <script type="text/javascript" src="messier.js"></script>
@@ -17,6 +18,24 @@
       function onload() {
       var map = new StarMap("test-map800", 800, REY_STARS60, REY_CONSTELLATIONS60, {messier: MESSIER, messier_colors: MESSIER_COLORS});
       map.setPos(83,54);
+      var el = document.getElementById("test-map800");
+      var out = document.getElementById("coord");
+      el.onmousemove = function (ev) {
+        //console.debug(ev);
+        if (!ev) var ev = window.event;
+        var h = map.proj.rad;
+        var x = ev.pageX - h - /* HACK */ 8;
+        var y = h - ev.pageY + /* HACK */ 8;
+        //var y = ev.pageY - h - 8;
+        var p = map.proj.inverseObj(x, y);
+        if (p) {
+          out.innerHTML = 're: '+Math.floor(180*p.re/Math.PI)+
+             ' de: '+Math.floor(180*p.de/Math.PI)+' ';
+        } else {
+          out.innerHTML = '';
+        }
+        out.innerHTML += '('+x+', '+y+')';
+      }
       }
     </script>
   </body>
