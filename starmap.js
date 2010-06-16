@@ -20,7 +20,7 @@ StereographicProjection.prototype.setRadius = function (rad) {
     this.rad = rad;
 };
 
-StereographicProjection.prototype.projectPoints = function (arr, rad) {
+StereographicProjection.prototype.projectPoints = function (arr) {
     function sinSum(cosa, sina, cosb, sinb) {
         return cosa*sinb+sina*cosb;
     }
