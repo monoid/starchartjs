@@ -121,6 +121,8 @@ StereographicProjection.prototype.projectObj = function (re, de) {
     return [x, y, x*x + y*y < rad*rad];
 };
 
+/** Coordinates of great circle segment from (ra1,de1) to (ra2,de2).
+ */
 StereographicProjection.prototype.projectSegment = function (ra1, de1, ra2, de2) {
 /*
 
@@ -130,6 +132,12 @@ Produced by Maxima 5.18.1:
 (%o1)                            re1 + %i im1
 (%i2) z2: re2 + %i*im2;
 (%o2)                            re2 + %i im2
+
+  Center of great circle defined by two points z1 and z2.  See (4.4) in
+
+       Robin G. Stuart.  Application of Complex Analysis to Spherical
+       Coordinate System.  Q.Jl. R. astr. Soc. (1984) 25, 126-136.
+
 (%i3) z0: ((abs(z1)^2-1)*z2 - (abs(z2)^2-1)*z1)/(conjugate(z1)*z2 - z1*conjugate(z2));
           2      2                                          2      2
       (re1  + im1  - 1) (re2 + %i im2) - (re1 + %i im1) (re2  + im2  - 1)
@@ -180,6 +188,8 @@ Produced by Maxima 5.18.1:
 };
 
 
+/** Project segment of parallel phi from lam1 to lam2.
+ */
 StereographicProjection.prototype.projectParallelSegment = function (lam1, lam2, phi) {
     var p = this.projectParallel(phi);
     var p1 = this.projectObj(phi, lam1), p2 = this.projectObj(phi, lam2);
