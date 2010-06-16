@@ -1,13 +1,19 @@
 /** Stereographic projection class. */
 function StereographicProjection (phi1, lam1, rad) {
-    this.phi1 = phi1;
-    this.lam1 = lam1;
-    this.rad = rad;
+    this.setCoords(phi1, lam1);
+    this.setRadius(rad);
 }
 
 StereographicProjection.prototype.setCoords = function (phi1, lam1) {
     this.phi1 = phi1;
     this.lam1 = lam1;
+
+    this.cph1 = Math.cos(phi1);
+    this.sph1 = Math.sin(phi1);
+    
+    this.cla1 = Math.cos(lam1);
+    this.sla1 = Math.sin(lam1);
+    
 };
 
 StereographicProjection.prototype.setRadius = function (rad) {
@@ -29,8 +35,8 @@ StereographicProjection.prototype.projectPoints = function (arr, rad) {
 
     var len = arr.length, i;
     var res = Array(len);
-    var cphi = Math.cos(phi1), sphi = Math.sin(phi1);
-    var clam = Math.cos(lam1), slam = Math.sin(lam1);
+    var cphi = this.cph1, sphi = this.sph1;
+    var clam = this.cla1, slam = this.sla1;
     for (i = 0; i < len; ++i) {
         var star = arr[i];
         var mag = star[0], re = star[2], de = -star[1];
@@ -53,7 +59,7 @@ StereographicProjection.prototype.projectMeridian = function (lam) {
     var phi1 = this.phi1;
     var R = this.rad;
 
-    var cp1 = Math.cos(phi1);
+    var cp1 = this.cph1;
     var dlam = lam1-lam;
     var sl1 = Math.sin(dlam);
     if (Math.abs(sl1) < 1e-10 || Math.abs(cp1) < 1e-10) {
@@ -82,7 +88,7 @@ StereographicProjection.prototype.projectParallel = function (phi) {
     var phi1 = this.phi1;
     var R = this.rad;
 
-    var s = Math.sin(phi1) + Math.sin(phi);
+    var s = this.sph1 + Math.sin(phi);
     // TODO: line if s == 0
     if (Math.abs(s) < 1e-10) {
         return {
@@ -96,7 +102,7 @@ StereographicProjection.prototype.projectParallel = function (phi) {
         return {
             'type': 'circle',
             'x': 0,
-            'y': R*Math.cos(phi1)/s,
+            'y': R*this.cph1/s,
             'r': Math.abs(R*Math.cos(phi)/s)
         };
     }
@@ -106,7 +112,7 @@ StereographicProjection.prototype.projectObj = function (re, de) {
     var lam1 = this.lam1;
     var phi1 = this.phi1;
     var rad = this.rad;
-    var cphi = Math.cos(phi1), sphi = Math.sin(phi1);
+    var cphi = this.cph1, sphi = this.sph1;
     de = lam1-de;
     var cosc = Math.cos(re), sinc = Math.sin(re);
     var cosl = Math.cos(de), sinl = Math.sin(de);
@@ -151,7 +157,7 @@ StereographicProjection.prototype.inverseObj = function (x, y) {
     var lam1 = this.lam1;
     var phi1 = this.phi1;
 
-    var cp1 = Math.cos(phi1), sp1 = Math.sin(phi1);
+    var cp1 = this.cph1, sp1 = this.sph1;
 
     var rho2 = x*x + y*y;
     if (rho2 > this.rad*this.rad) {
