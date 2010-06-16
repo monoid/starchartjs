@@ -1,18 +1,24 @@
 /** Stereographic projection class. */
 function StereographicProjection (phi1, lam1, rad) {
-    this.phi1 = phi1;
-    this.lam1 = lam1;
-    this.rad = rad;
+    this.setCoords(phi1, lam1);
+    this.setRadius(rad);
 }
 
 StereographicProjection.prototype.setCoords = function (phi1, lam1) {
     this.phi1 = phi1;
     this.lam1 = lam1;
-}
+
+    this.cph1 = Math.cos(phi1);
+    this.sph1 = Math.sin(phi1);
+    
+    this.cla1 = Math.cos(lam1);
+    this.sla1 = Math.sin(lam1);
+    
+};
 
 StereographicProjection.prototype.setRadius = function (rad) {
     this.rad = rad;
-}
+};
 
 StereographicProjection.prototype.projectPoints = function (arr, rad) {
     function sinSum(cosa, sina, cosb, sinb) {
@@ -29,8 +35,8 @@ StereographicProjection.prototype.projectPoints = function (arr, rad) {
 
     var len = arr.length, i;
     var res = Array(len);
-    var cphi = Math.cos(phi1), sphi = Math.sin(phi1);
-    var clam = Math.cos(lam1), slam = Math.sin(lam1);
+    var cphi = this.cph1, sphi = this.sph1;
+    var clam = this.cla1, slam = this.sla1;
     for (i = 0; i < len; ++i) {
         var star = arr[i];
         var mag = star[0], re = star[2], de = -star[1];
@@ -53,7 +59,7 @@ StereographicProjection.prototype.projectMeridian = function (lam) {
     var phi1 = this.phi1;
     var R = this.rad;
 
-    var cp1 = Math.cos(phi1);
+    var cp1 = this.cph1;
     var dlam = lam1-lam;
     var sl1 = Math.sin(dlam);
     if (Math.abs(sl1) < 1e-10 || Math.abs(cp1) < 1e-10) {
@@ -72,17 +78,17 @@ StereographicProjection.prototype.projectMeridian = function (lam) {
             'type': 'circle',
             'x': x,
             'y': y,
-            'r': rho
+            'r': Math.abs(rho)
         };
     }
-}
+};
 
 StereographicProjection.prototype.projectParallel = function (phi) {
     var lam1 = this.lam1;
     var phi1 = this.phi1;
     var R = this.rad;
 
-    var s = Math.sin(phi1) + Math.sin(phi);
+    var s = this.sph1 + Math.sin(phi);
     // TODO: line if s == 0
     if (Math.abs(s) < 1e-10) {
         return {
@@ -96,24 +102,24 @@ StereographicProjection.prototype.projectParallel = function (phi) {
         return {
             'type': 'circle',
             'x': 0,
-            'y': R*Math.cos(phi1)/s,
-            'r': R*Math.cos(phi)/s
+            'y': R*this.cph1/s,
+            'r': Math.abs(R*Math.cos(phi)/s)
         };
     }
-}
+};
 
 StereographicProjection.prototype.projectObj = function (re, de) {
     var lam1 = this.lam1;
     var phi1 = this.phi1;
     var rad = this.rad;
-    var cphi = Math.cos(phi1), sphi = Math.sin(phi1);
+    var cphi = this.cph1, sphi = this.sph1;
     de = lam1-de;
     var cosc = Math.cos(re), sinc = Math.sin(re);
     var cosl = Math.cos(de), sinl = Math.sin(de);
     var k = rad / (1.0 + sphi * sinc + cphi * cosc * cosl);
     var x = k * cosc * sinl, y = - k * (cphi * sinc - sphi * cosc * cosl);
     return [x, y, x*x + y*y < rad*rad];
-}
+};
 
 StereographicProjection.prototype.projectSegment = function (ra1, de1, ra2, de2) {
 /*
@@ -222,6 +228,50 @@ StereographicProjection.prototype.projectCircle = function (re, de, alpha) {
     return this.projectCircle2(p, alpha);
 };
 
+/** Inverse projection of a single point.
+ */
+StereographicProjection.prototype.inverseObj = function (x, y) {
+    var lam1 = this.lam1;
+    var phi1 = this.phi1;
+
+    var cp1 = this.cph1, sp1 = this.sph1;
+
+    var rho2 = x*x + y*y;
+    if (rho2 > this.rad*this.rad) {
+        // Point is out of map
+        return null;
+    }
+    if (rho2 < 1e-18) {
+        return {
+            're': lam1,
+            'de': phi1
+        };
+    } else {
+        var rho = Math.sqrt(rho2);
+        var c = 2*Math.atan(rho/this.rad);
+        var cosc = Math.cos(c);
+        var sinc = Math.sin(c);
+        var phi = Math.asin(cosc*sp1
+                            + (y*sinc*cp1/rho));
+        var lam;
+        if (Math.abs(phi1-Math.PI) < 1e-9) {
+            // phi1 = PI
+            lam = lam1 - Math.atan2(x, -y);
+        } else if (Math.abs(this.phi - (-Math.PI)) < 1e-9) {
+            // phi1 = -PI
+            lam = lam1 - Math.atan2(x, y);
+        } else {
+            lam = lam1 - Math.atan2(x*sinc,
+                                    rho*cp1*cosc - y*sp1*sinc);
+        }
+        lam = StarJs.Math.mod(lam, 2*Math.PI);
+        phi = StarJs.Math.mod(phi+Math.PI, 2*Math.PI)-Math.PI;
+        return {
+            're': lam,
+            'de': phi
+        };
+    }
+};
 
 /**
  * Celestial map component.
@@ -272,12 +322,12 @@ StarMap.Planet = function (pl, size, color) {
 StarMap.Planet.prototype.getCoord = function (jct, earthPos, equ2ecl) {
     var pos = this.pl.keplerCoord(jct);
     return new StarJs.Vector.Polar3(equ2ecl.apply(pos.sub(earthPos)))
-}
+};
 
 StarMap.Moon = function (size, color) {
     this.size = size;
     this.color = color;
-}
+};
 
 StarMap.Moon.prototype.pl = { name: 'Moon' };
 
@@ -285,7 +335,7 @@ StarMap.Moon.prototype.getCoord = function (jct, earthPos, equ2ecl) {
     // earthPos and equ2ecl are ignored
     var pos = StarJs.Solar.approxMoon(jct);
     return {'phi': pos.ra, 'theta': pos.dec};
-}
+};
 
 StarMap.PLANETS = [
     new StarMap.Planet(StarJs.Solar.BODIES.Sun, 20, '#FF0'),
@@ -337,7 +387,7 @@ StarMap.prototype.drawTelrad = function (ctx, lat, lon) {
 
     drawBullEye(g20);
     drawBullEye(g40);
-}
+};
 
 StarMap.prototype.setPos = function (lat, lon, time) {
     var Ti = StarJs.Time;
@@ -381,14 +431,12 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                        halfsize+p.y+halfsize*p.vy);
             break;
         case 'circle':
-            if (p.r > 0) {
-                ctx.arc(halfsize+p.x, halfsize-p.y, p.r, 0, 2*Math.PI, true);
-            }
+            ctx.arc(halfsize+p.x, halfsize-p.y, p.r, 0, 2*Math.PI, true);
             break;
         }
         ctx.stroke();
     }
-    for (i = -180; i < 180; i += 15) {
+    for (i = 0; i < 180; i += 15) {
         var p = this.proj.projectMeridian(Math.PI*i/180);
         ctx.beginPath();
         ctx.lineWidth = (i === 0 || i === -180) ? 1.7 : 1;
@@ -400,10 +448,8 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                        halfsize+p.y+halfsize*p.vy);
             break;
         case 'circle':
-            if (p.r > 0) {
-                ctx.arc(halfsize+p.x, halfsize-p.y, p.r,
-                        0, 2*Math.PI, true);
-            }
+            ctx.arc(halfsize+p.x, halfsize-p.y, p.r,
+                    0, 2*Math.PI, true);
             break;
         }
         ctx.stroke();
@@ -564,6 +610,58 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     this.drawTelrad(ctx, tel.x, tel.y);
     tel = {'x': 0.301, 'y': 2.151};
     this.drawTelrad(ctx, tel.x, tel.y);
+
+    // Draw path of C/2009 R1 (McNaught)
+    var C2009R1_DA = ["2010 05 04", "2010 05 09", "2010 05 14",
+                      "2010 05 19", "2010 05 24", "2010 05 29",
+                      "2010 06 03", "2010 06 08", "2010 06 13",
+                      "2010 06 18", "2010 06 23", "2010 06 28",
+                      "2010 07 03", "2010 07 08", "2010 07 13",
+                      "2010 07 18", "2010 07 23", "2010 07 28"];
+    var C2009R1_RA = [23+35.99/60.0, 23+48.09/60.0,  0+ 2.04/60.0,
+                       0+18.56/60.0,  0+38.69/60.0,  1+ 4.06/60.0,
+                       1+37.04/60.0,  2+20.73/60.0,  3+17.79/60.0,
+                       4+26.49/60.0,  5+37.00/60.0,  6+36.84/60.0,
+                       7+20.69/60.0,  7+50.73/60.0,  8+11.73/60.0,
+                       8+27.57/60.0,  8+40.53/60.0,  8+51.84/60.0];
+    var C2009R1_DE = [ 9+56.1/60.0, 13+11.8/60.0, 16+53.6/60.0,
+                      21+ 5.1/60.0, 25+48.9/60.0, 31+ 3.2/60.0,
+                      36+37.2/60.0, 42+ 1.6/60.0, 46+19.9/60.0,
+                      48+14.0/60.0, 46+44.8/60.0, 42+ 0.7/60.0,
+                      35+ 8.7/60.0, 27+30.3/60.0, 20+ 4.7/60.0,
+                      13+16.4/60.0, 07+ 8.3/60.0,  1+35.8/60.0];
+    ctx.fillStyle = 'green';
+    ctx.strokeStyle = 'green';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (i = 0; i < C2009R1_DE.length; ++i) {
+        var cp = this.proj.projectObj(Math.PI*C2009R1_DE[i]/180.0,
+                                      Math.PI*C2009R1_RA[i]/12.0);
+        if (cp[2]) {
+            xx = cp[0]+halfsize;
+            yy = halfsize-cp[1];
+            ctx.lineTo(xx, yy);
+        }
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = '#8F8';
+    ctx.strokeStyle = '#8F8';
+    // We recalculate same data, but this is just a sample, nevermind.
+    for (i = 0; i < C2009R1_DE.length; ++i) {
+        var cp = this.proj.projectObj(Math.PI*C2009R1_DE[i]/180.0,
+                                      Math.PI*C2009R1_RA[i]/12.0);
+        if (cp[2]) {
+            xx = cp[0]+halfsize;
+            yy = halfsize-cp[1];
+            ctx.beginPath();
+            ctx.arc(xx, yy, 2, 0, 2*Math.PI, true);
+            ctx.fill();
+            if (ctx.fillText) {
+                ctx.fillText(C2009R1_DA[i], xx, yy - 4);
+            }
+        }
+    }
 };
 
 window['StarMap']=StarMap;
