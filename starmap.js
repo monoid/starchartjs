@@ -123,7 +123,7 @@ StereographicProjection.prototype.projectObj = function (re, de) {
 
 /** Coordinates of great circle segment from (ra1,de1) to (ra2,de2).
  */
-StereographicProjection.prototype.projectSegment = function (ra1, de1, ra2, de2) {
+StereographicProjection.prototype.projectGreatSegment = function (ra1, de1, ra2, de2) {
 /*
 
 Produced by Maxima 5.18.1:
@@ -487,10 +487,10 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                     Math.PI*l[1]/180
                 );
             } else {
-                seg = this.proj.projectSegment(Math.PI*prev[1]/180,
-                                               15*Math.PI*prev[0]/180,
-                                               Math.PI*l[1]/180,
-                                               15*Math.PI*l[0]/180);
+                seg = this.proj.projectGreatSegment(Math.PI*prev[1]/180,
+                                                    15*Math.PI*prev[0]/180,
+                                                    Math.PI*l[1]/180,
+                                                    15*Math.PI*l[0]/180);
             }
             ctx.beginPath();
             switch (seg.type) {
