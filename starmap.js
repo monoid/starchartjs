@@ -238,6 +238,28 @@ StereographicProjection.prototype.projectCircle = function (re, de, alpha) {
     return this.projectCircle2(p, alpha);
 };
 
+
+/** Project arc of arbitrary circle centered at (re, de) on the sphere
+ * with angular radius alpha.  Arc spans from (re1, de1) to
+ * (re2, de2).
+ */
+
+StereographicProjection.prototype.projectSegment = function (re, de, alpha, re1, de1, re2, de2) {
+    var p1 = this.projectObj(re1, de1);
+    var p2 = this.projectObj(re2, de2);
+
+    var c = this.projectCircle(re, de, alpha);
+
+    c.r = c.rad; // TODO Inconsistence...
+    c.p1 = p1;
+    c.p2 = p2;
+
+    c.a1 = Math.atan2(p1[1]-c.y, p1[0]-c.x);
+    c.a2 = Math.atan2(p2[1]-c.y, p2[0]-c.x);
+
+    return c;
+};
+
 /** Inverse projection of a single point.
  */
 StereographicProjection.prototype.inverseObj = function (x, y) {
@@ -481,10 +503,17 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         if (cstn === l[2]) {
             var seg;
             if (prev[1] === l[1]) {
-                seg = this.proj.projectParallelSegment(
+                seg = this.proj.projectSegment(
+                    // Center
+                    Math.PI/2, 0,
+                    // Radius
+                    Math.PI/2-DEG2RAD*l[1],
+                    // Point 1
+                    DEG2RAD*prev[1],
                     15*Math.PI*prev[0]/180,
-                    15*Math.PI*l[0]/180,
-                    Math.PI*l[1]/180
+                    // Point 2
+                    DEG2RAD*l[1],
+                    15*Math.PI*l[0]/180
                 );
             } else {
                 seg = this.proj.projectGreatSegment(Math.PI*prev[1]/180,
