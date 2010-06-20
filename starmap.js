@@ -498,8 +498,8 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     // brighter) if alpha is used.
     ctx.strokeStyle = 'rgba(128,0,128,1)';
     var prev = null;
-    for (j = 0; j < CON_BOUND_18.length; ++j) {
-        var l = CON_BOUND_18[j];
+    for (j = 0; j < 39+0*CON_BOUND_18.length; ++j) {
+        var l = CON_BOUND_18[j], a1, a2;
         if (cstn === l[2]) {
             var seg;
             if (prev[1] === l[1]) {
@@ -510,27 +510,38 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                     Math.PI/2-DEG2RAD*l[1],
                     // Point 1
                     DEG2RAD*prev[1],
-                    15*Math.PI*prev[0]/180,
+                    a1 = 15*Math.PI*prev[0]/180,
                     // Point 2
                     DEG2RAD*l[1],
-                    15*Math.PI*l[0]/180
+                    a2 = 15*Math.PI*l[0]/180
                 );
             } else {
-                seg = this.proj.projectGreatSegment(Math.PI*prev[1]/180,
+                seg = this.proj.projectGreatSegment(a2 = Math.PI*prev[1]/180,
                                                     15*Math.PI*prev[0]/180,
-                                                    Math.PI*l[1]/180,
+                                                    a1 = Math.PI*l[1]/180,
                                                     15*Math.PI*l[0]/180);
             }
             ctx.beginPath();
             switch (seg.type) {
-            case 'circle':   
+            case 'circle':
+                console.debug(seg.x, seg.y,
+                              seg.r,
+                              seg.p1, seg.p2);
+                console.debug((seg.a1/DEG2RAD).toFixed(3),
+                              (seg.a2/DEG2RAD).toFixed(3),
+                              angSep(seg.a1, seg.a2) < angSep(seg.a2, seg.a1),
+                              (a1/DEG2RAD).toFixed(3),
+                              (a2/DEG2RAD).toFixed(3),
+                              angSep(a1, a2) < angSep(a2, a1));
                 ctx.arc(halfsize+seg.x, halfsize+seg.y,
                         seg.r,
                         seg.a1, seg.a2,
                         // TODO: angular sepration of unprojected
                         // lines.  Projected circles sometimes give
                         // wrong result due to distortion.
-                        angSep(seg.a1,seg.a2) < angSep(seg.a2,seg.a1));
+                        angSep(seg.a1, seg.a2) < angSep(seg.a2, seg.a1)
+                        //angSep(a1, a2) < angSep(a2, a1)
+                       );
                 break;
             case 'line':
                 // TODO sometimes lines shouldn't be drawn if their
