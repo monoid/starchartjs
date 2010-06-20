@@ -689,7 +689,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                                       Math.PI*C2009R1_RA[i]/12.0);
         if (cp[2]) {
             xx = cp[0]+halfsize;
-            yy = halfsize-cp[1];
+            yy = cp[1]+halfsize;
             ctx.lineTo(xx, yy);
         }
     }
@@ -703,7 +703,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                                       Math.PI*C2009R1_RA[i]/12.0);
         if (cp[2]) {
             xx = cp[0]+halfsize;
-            yy = halfsize-cp[1];
+            yy = cp[1]+halfsize;
             ctx.beginPath();
             ctx.arc(xx, yy, 2, 0, 2*Math.PI, true);
             ctx.fill();
