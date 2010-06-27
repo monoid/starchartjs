@@ -486,6 +486,34 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         }
         ctx.stroke();
     }
+    
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    p = this.proj.projectParallel(Math.PI/2-lon);
+    switch (p.type) {
+    case 'line':
+        ctx.moveTo(halfsize+p.x-halfsize*p.vx,
+                   halfsize+p.y-halfsize*p.vy);
+        ctx.lineTo(halfsize+p.x+halfsize*p.vx,
+                   halfsize+p.y+halfsize*p.vy);
+        break;
+    case 'circle':
+        ctx.arc(halfsize+p.x, halfsize-p.y, p.r, 0, 2*Math.PI, true);
+        break;
+    }
+    p = this.proj.projectParallel(-Math.PI/2-lon);
+    switch (p.type) {
+    case 'line':
+        ctx.moveTo(halfsize+p.x-halfsize*p.vx,
+                   halfsize+p.y-halfsize*p.vy);
+        ctx.lineTo(halfsize+p.x+halfsize*p.vx,
+                   halfsize+p.y+halfsize*p.vy);
+        break;
+    case 'circle':
+        ctx.arc(halfsize+p.x, halfsize+p.y, p.r, 0, 2*Math.PI, true);
+        break;
+    }
+    ctx.stroke();
     ctx.lineWidth = 1;
 
     function angSep(a1, a2) {
@@ -723,14 +751,43 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     var ecl2equ = StarJs.Coord.ecl2equMatrix(jct);
     C2009R1_pos = new StarJs.Vector.Polar3(ecl2equ.apply(C2009R1_pos.sub(earthPos)));
     C2009R1_cm = this.proj.projectObj(C2009R1_pos.theta, C2009R1_pos.phi);
-    ctx.strokeStyle = ctx.fillStyle = '#AFA';
-    ctx.beginPath();
-    ctx.arc(C2009R1_cm[0]+halfsize, C2009R1_cm[1]+halfsize, 4, 0, 2*Math.PI, true);
-    ctx.fill();
+
+    ctx.strokeStyle = ctx.fillStyle = 'rgba(220, 255, 220, 0.7)';
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(C2009R1_cm[0]+halfsize, C2009R1_cm[1]+halfsize, 6, 0, 2*Math.PI, true);
     ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(C2009R1_cm[0]+halfsize, C2009R1_cm[1]+halfsize, 4, 0, 2*Math.PI, true);
+    ctx.fill();
+
     
+    // Draw sides of Earth
+    if (ctx.fillText) {
+        ctx.translate(halfsize, halfsize);
+    
+        ctx.fillStyle = 'gold';
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2;
+        ctx.font = '20px serif';
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.strokeText("N", 0, -halfsize+4);
+        ctx.fillText("N", 0, -halfsize+5);
+
+        ctx.rotate(Math.PI/2);
+        ctx.strokeText("W", 0, -halfsize+4);
+        ctx.fillText("W", 0, -halfsize+5);
+
+        ctx.rotate(Math.PI/2);
+        ctx.strokeText("S", 0, -halfsize+4);
+        ctx.fillText("S", 0, -halfsize+5);
+
+        ctx.rotate(Math.PI/2);
+        ctx.strokeText("E", 0, -halfsize+5);
+        ctx.fillText("E", 0, -halfsize+5);
+    }
 };
 
 window['StarMap']=StarMap;
