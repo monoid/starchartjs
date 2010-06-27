@@ -324,7 +324,7 @@ function StarMap (elt, size, stars, cnstltns, prop) {
 
     this.proj = new StereographicProjection(0, 0, halfsize);
 
-    this.drawBg();
+    //this.drawBg();
 }
 
 StarMap.prototype.drawBg = function () {
@@ -334,14 +334,15 @@ StarMap.prototype.drawBg = function () {
 
     ctx.clearRect(0, 0, size, size);
     ctx.fillStyle='#FFF';
-    ctx.fillRect(0,0,size, size);
+    ctx.fillRect(-halfsize,-halfsize,halfsize, halfsize);
+
     ctx.beginPath();
     ctx.fillStyle = (this.prop.circleFill || "#000010");
-    ctx.arc(halfsize, halfsize, halfsize, 0, 2*Math.PI, true);
+    ctx.arc(0, 0, halfsize, 0, 2*Math.PI, true);
     ctx.fill();
     
     ctx.beginPath();
-    ctx.arc(halfsize, halfsize, halfsize, 0, 2*Math.PI, true);
+    ctx.arc(0, 0, halfsize, 0, 2*Math.PI, true);
     ctx.clip();
 }    
 
@@ -397,24 +398,24 @@ StarMap.prototype.drawTelrad = function (ctx, lat, lon) {
     function drawBullEye(g) {
         var D = 0.15;
         ctx.beginPath();
-        ctx.arc(h+g.x, h+g.y, g.rad, D, 0.5*Math.PI-D, false);
+        ctx.arc(g.x, g.y, g.rad, D, 0.5*Math.PI-D, false);
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.arc(h+g.x, h+g.y, g.rad, 0.5*Math.PI+D, Math.PI-D, false);
+        ctx.arc(g.x, g.y, g.rad, 0.5*Math.PI+D, Math.PI-D, false);
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.arc(h+g.x, h+g.y, g.rad, Math.PI+D, 1.5*Math.PI-D, false);
+        ctx.arc(g.x, g.y, g.rad, Math.PI+D, 1.5*Math.PI-D, false);
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.arc(h+g.x, h+g.y, g.rad, 1.5*Math.PI+D, 2*Math.PI-D, false);
+        ctx.arc(g.x, g.y, g.rad, 1.5*Math.PI+D, 2*Math.PI-D, false);
         ctx.stroke();
     }
 
     ctx.beginPath();
-    ctx.arc(h+g05.x, h+g05.y, g05.rad, 0, 2*Math.PI, true);
+    ctx.arc(g05.x, g05.y, g05.rad, 0, 2*Math.PI, true);
     ctx.stroke();
 
     drawBullEye(g20);
@@ -445,9 +446,12 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     var ortho = this.proj.projectPoints(this.stars);
     var cst = [], i, j, slen = ortho.length, co = this.cnstltns, clen = co.length, halfsize = Math.floor(this.size/2);
     
-    this.drawBg();
-
     var ctx = this.ctx;
+    ctx.save();
+
+    ctx.translate(halfsize, halfsize);
+
+    this.drawBg();
 
     // Draw graticule
     ctx.strokeStyle = '#448';
@@ -457,13 +461,13 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         ctx.lineWidth = (i === 0) ? 1.7 : 1;
         switch (p.type) {
         case 'line':
-            ctx.moveTo(halfsize+p.x-halfsize*p.vx,
-                       halfsize+p.y-halfsize*p.vy);
-            ctx.lineTo(halfsize+p.x+halfsize*p.vx,
-                       halfsize+p.y+halfsize*p.vy);
+            ctx.moveTo(p.x-halfsize*p.vx,
+                       p.y-halfsize*p.vy);
+            ctx.lineTo(p.x+halfsize*p.vx,
+                       p.y+halfsize*p.vy);
             break;
         case 'circle':
-            ctx.arc(halfsize+p.x, halfsize-p.y, p.r, 0, 2*Math.PI, true);
+            ctx.arc(p.x, -p.y, p.r, 0, 2*Math.PI, true);
             break;
         }
         ctx.stroke();
@@ -474,13 +478,13 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         ctx.lineWidth = (i === 0 || i === -180) ? 1.7 : 1;
         switch (p.type) {
         case 'line':
-            ctx.moveTo(halfsize+p.x-halfsize*p.vx,
-                       halfsize+p.y-halfsize*p.vy);
-            ctx.lineTo(halfsize+p.x+halfsize*p.vx,
-                       halfsize+p.y+halfsize*p.vy);
+            ctx.moveTo(p.x-halfsize*p.vx,
+                       p.y-halfsize*p.vy);
+            ctx.lineTo(p.x+halfsize*p.vx,
+                       p.y+halfsize*p.vy);
             break;
         case 'circle':
-            ctx.arc(halfsize+p.x, halfsize-p.y, p.r,
+            ctx.arc(p.x, -p.y, p.r,
                     0, 2*Math.PI, true);
             break;
         }
@@ -492,25 +496,27 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     p = this.proj.projectParallel(Math.PI/2-lon);
     switch (p.type) {
     case 'line':
-        ctx.moveTo(halfsize+p.x-halfsize*p.vx,
-                   halfsize+p.y-halfsize*p.vy);
-        ctx.lineTo(halfsize+p.x+halfsize*p.vx,
-                   halfsize+p.y+halfsize*p.vy);
+        ctx.moveTo(p.x-halfsize*p.vx,
+                   p.y-halfsize*p.vy);
+        ctx.lineTo(p.x+halfsize*p.vx,
+                   p.y+halfsize*p.vy);
         break;
     case 'circle':
-        ctx.arc(halfsize+p.x, halfsize-p.y, p.r, 0, 2*Math.PI, true);
+        ctx.arc(p.x, -p.y, p.r, 0, 2*Math.PI, true);
         break;
     }
+    ctx.stroke();
+    ctx.beginPath();
     p = this.proj.projectParallel(-Math.PI/2-lon);
     switch (p.type) {
     case 'line':
-        ctx.moveTo(halfsize+p.x-halfsize*p.vx,
-                   halfsize+p.y-halfsize*p.vy);
-        ctx.lineTo(halfsize+p.x+halfsize*p.vx,
-                   halfsize+p.y+halfsize*p.vy);
+        ctx.moveTo(p.x-halfsize*p.vx,
+                   p.y-halfsize*p.vy);
+        ctx.lineTo(p.x+halfsize*p.vx,
+                   p.y+halfsize*p.vy);
         break;
     case 'circle':
-        ctx.arc(halfsize+p.x, halfsize+p.y, p.r, 0, 2*Math.PI, true);
+        ctx.arc(p.x, p.y, p.r, 0, 2*Math.PI, true);
         break;
     }
     ctx.stroke();
@@ -554,7 +560,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             ctx.beginPath();
             switch (seg.type) {
             case 'circle':
-                ctx.arc(halfsize+seg.x, halfsize+seg.y,
+                ctx.arc(seg.x, seg.y,
                         seg.r,
                         seg.a1, seg.a2,
                         angSep(a1, a2) < angSep(a2, a1) !== (gr && seg.p1[0] > 0));
@@ -564,8 +570,8 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                 // central point pass through infinity, or at least
                 // they should be drawn more intelligently.  Can be
                 // such lines wisible in viewport?
-                ctx.moveTo(halfsize+seg.x1, halfsize+seg.y1);
-                ctx.lineTo(halfsize+seg.x2, halfsize+seg.y2);
+                ctx.moveTo(seg.x1, seg.y1);
+                ctx.lineTo(seg.x2, seg.y2);
                 break;
             }
             ctx.stroke();
@@ -584,8 +590,8 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         var s = co[j][0], e = co[j][1];
         var so = ortho[s], eo = ortho[e];
         if (so[3] || eo[3]) {
-            ctx.moveTo((so[1]+halfsize), (halfsize-so[2]));
-            ctx.lineTo((eo[1]+halfsize), (halfsize-eo[2]));
+            ctx.moveTo(so[1], -so[2]);
+            ctx.lineTo(eo[1], -eo[2]);
         }
     }
     ctx.stroke();
@@ -595,7 +601,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     if (eclp.type === 'circle') {
         ctx.beginPath();
         ctx.strokeStyle = 'yellow';
-        ctx.arc(eclp.x+halfsize, halfsize+eclp.y, eclp.rad, 0, 2*Math.PI, true);
+        ctx.arc(eclp.x, eclp.y, eclp.rad, 0, 2*Math.PI, true);
         ctx.stroke();
     }
 
@@ -605,7 +611,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         var s = ortho[i];
         if (s[3]) {
             ctx.beginPath();
-            ctx.arc(s[1]+halfsize, halfsize-s[2],
+            ctx.arc(s[1], -s[2],
                     Math.max(3-s[0]/2, 0.5),
                     0, 2*Math.PI, true);
             ctx.fill();
@@ -626,7 +632,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             cc = messier[i];
             cm = this.proj.projectObj(cc[4], 15*cc[3]);
             if (cm[2]) {
-                var xx = cm[0]+halfsize, yy = halfsize+cm[1];
+                var xx = cm[0], yy = cm[1];
                 ctx.beginPath();
                 if (this.prop.messier_colors && this.prop.messier_colors[messier[i][2]]) {
                     ctx.strokeStyle = this.prop.messier_colors[cc[2]];
@@ -652,7 +658,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             if (cm[2]) {
                 ctx.beginPath();
                 ctx.fillStyle = planet.color;
-                var xx = cm[0]+halfsize, yy = halfsize + cm[1];
+                var xx = cm[0], yy = cm[1];
                 ctx.arc(xx, yy, planet.size/2,
                         0, 2*Math.PI, true);
                 ctx.fill();
@@ -704,8 +710,8 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         var cp = this.proj.projectObj(Math.PI*C2009R1_DE[i]/180.0,
                                       Math.PI*C2009R1_RA[i]/12.0);
         if (cp[2]) {
-            xx = cp[0]+halfsize;
-            yy = cp[1]+halfsize;
+            xx = cp[0];
+            yy = cp[1];
             ctx.lineTo(xx, yy);
         }
     }
@@ -718,8 +724,8 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         var cp = this.proj.projectObj(Math.PI*C2009R1_DE[i]/180.0,
                                       Math.PI*C2009R1_RA[i]/12.0);
         if (cp[2]) {
-            xx = cp[0]+halfsize;
-            yy = cp[1]+halfsize;
+            xx = cp[0];
+            yy = cp[1];
             ctx.beginPath();
             ctx.arc(xx, yy, 2, 0, 2*Math.PI, true);
             ctx.fill();
@@ -755,16 +761,16 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     ctx.strokeStyle = ctx.fillStyle = 'rgba(220, 255, 220, 0.7)';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(C2009R1_cm[0]+halfsize, C2009R1_cm[1]+halfsize, 6, 0, 2*Math.PI, true);
+    ctx.arc(C2009R1_cm[0], C2009R1_cm[1], 6, 0, 2*Math.PI, true);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(C2009R1_cm[0]+halfsize, C2009R1_cm[1]+halfsize, 4, 0, 2*Math.PI, true);
+    ctx.arc(C2009R1_cm[0], C2009R1_cm[1], 4, 0, 2*Math.PI, true);
     ctx.fill();
 
     
     // Draw sides of Earth
     if (ctx.fillText) {
-        ctx.translate(halfsize, halfsize);
+        //ctx.translate(halfsize, halfsize);
     
         ctx.fillStyle = 'gold';
         ctx.strokeStyle = 'black';
@@ -788,6 +794,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         ctx.strokeText("E", 0, -halfsize+5);
         ctx.fillText("E", 0, -halfsize+5);
     }
+    ctx.restore();
 };
 
 window['StarMap']=StarMap;
