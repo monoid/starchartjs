@@ -353,7 +353,7 @@ StarMap.Planet = function (pl, size, color) {
 
 StarMap.Planet.prototype.getCoord = function (jct, earthPos, equ2ecl) {
     var pos = this.pl.keplerCoord(jct);
-    return new StarJs.Vector.Polar3(equ2ecl.apply(pos.sub(earthPos)))
+    return new StarJs.Vector.Polar3(equ2ecl.apply(pos.sub(earthPos)));
 };
 
 StarMap.Moon = function (size, color) {
@@ -612,8 +612,8 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     }
 
     // Draw planets
+    var jct = Ti.mjd2jct(mjd);
     if (this.planets) {
-        var jct = Ti.mjd2jct(mjd);
         var earthPos = StarMap.EARTH.keplerCoord(jct);
         var equ2ecl = StarJs.Coord.ecl2equMatrix(jct);
         for (i = 0; i < StarMap.PLANETS.length; ++i) {
@@ -700,6 +700,37 @@ StarMap.prototype.setPos = function (lat, lon, time) {
             }
         }
     }
+
+    // Draw current position of the comet
+    var C2009R1 = {
+        t0: 2455379.6792-2400000.5,
+        q: 0.405011,
+        z: -0.000808,
+        e: 1.000327,
+        peri: 130.7013*DEG2RAD,
+        node: 322.6220*DEG2RAD,
+        incl: 77.0319*DEG2RAD
+    };
+    var C2009R1_PQR = StarJs.Kepler.gaussVec(C2009R1.node, C2009R1.incl, C2009R1.peri);
+
+    var C2009R1_pos = StarJs.Kepler.keplerPos(StarJs.Solar.GM,
+                                              C2009R1.t0,
+                                              mjd,
+                                              C2009R1.q,
+                                              C2009R1.e,
+                                              C2009R1_PQR);
+    earthPos = StarMap.EARTH.keplerCoord(jct);
+    var ecl2equ = StarJs.Coord.ecl2equMatrix(jct);
+    C2009R1_pos = new StarJs.Vector.Polar3(ecl2equ.apply(C2009R1_pos.sub(earthPos)));
+    C2009R1_cm = this.proj.projectObj(C2009R1_pos.theta, C2009R1_pos.phi);
+    ctx.strokeStyle = ctx.fillStyle = '#AFA';
+    ctx.beginPath();
+    ctx.arc(C2009R1_cm[0]+halfsize, C2009R1_cm[1]+halfsize, 4, 0, 2*Math.PI, true);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(C2009R1_cm[0]+halfsize, C2009R1_cm[1]+halfsize, 6, 0, 2*Math.PI, true);
+    ctx.stroke();
+    
 };
 
 window['StarMap']=StarMap;
