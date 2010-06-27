@@ -15,8 +15,9 @@
       var map = new StarMap("test-map800", 800, REY_STARS, REY_CONSTELLATIONS, {planets: true});
       var a = -90;
       function animate() {
-        map.setPos(a,55);
         a+=0.5;
+        map.setOrient(a*StarJs.Math.DEG2RAD);
+        map.setPos(85,55);
         setTimeout(animate, 40);
       }
       animate();

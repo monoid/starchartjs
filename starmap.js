@@ -319,6 +319,8 @@ function StarMap (elt, size, stars, cnstltns, prop) {
 
     this.planets = (typeof prop.planets === 'undefined') ? true : prop.planets;
 
+    this.orient = 0;
+
     this.stars = stars;
     this.cnstltns = cnstltns;
 
@@ -345,6 +347,10 @@ StarMap.prototype.drawBg = function () {
     ctx.arc(0, 0, halfsize, 0, 2*Math.PI, true);
     ctx.clip();
 }    
+
+StarMap.prototype.setOrient = function (orient) {
+    this.orient = orient;
+};
 
 StarMap.Planet = function (pl, size, color) {
     this.pl = pl;
@@ -450,6 +456,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     ctx.save();
 
     ctx.translate(halfsize, halfsize);
+    ctx.rotate(this.orient);
 
     this.drawBg();
 
