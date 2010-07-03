@@ -785,21 +785,21 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         ctx.font = '20px serif';
 
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.strokeText("N", 0, -halfsize+4);
-        ctx.fillText("N", 0, -halfsize+5);
+        ctx.textBaseline = 'bottom';
+        ctx.strokeText("S", 0, halfsize-5);
+        ctx.fillText("S", 0, halfsize-5);
 
         ctx.rotate(Math.PI/2);
-        ctx.strokeText("W", 0, -halfsize+4);
-        ctx.fillText("W", 0, -halfsize+5);
+        ctx.strokeText("E", 0, halfsize-5);
+        ctx.fillText("E", 0, halfsize-5);
 
         ctx.rotate(Math.PI/2);
-        ctx.strokeText("S", 0, -halfsize+4);
-        ctx.fillText("S", 0, -halfsize+5);
+        ctx.strokeText("N", 0, halfsize-5);
+        ctx.fillText("N", 0, halfsize-5);
 
         ctx.rotate(Math.PI/2);
-        ctx.strokeText("E", 0, -halfsize+5);
-        ctx.fillText("E", 0, -halfsize+5);
+        ctx.strokeText("W", 0, halfsize-5);
+        ctx.fillText("W", 0, halfsize-5);
     }
     ctx.restore();
 };
