@@ -789,7 +789,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
         ctx.strokeText("S", 0, halfsize-5);
         ctx.fillText("S", 0, halfsize-5);
 
-        ctx.rotate(Math.PI/2);
+        ctx.rotate(Math.PI/2+0.00001/* Opera 10.60 suxx */);
         ctx.strokeText("E", 0, halfsize-5);
         ctx.fillText("E", 0, halfsize-5);
 
