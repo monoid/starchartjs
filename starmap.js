@@ -763,7 +763,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     earthPos = StarMap.EARTH.keplerCoord(jct);
     var ecl2equ = StarJs.Coord.ecl2equMatrix(jct);
     C2009R1_pos = new StarJs.Vector.Polar3(ecl2equ.apply(C2009R1_pos.sub(earthPos)));
-    C2009R1_cm = this.proj.projectObj(C2009R1_pos.theta, C2009R1_pos.phi);
+    var C2009R1_cm = this.proj.projectObj(C2009R1_pos.theta, C2009R1_pos.phi);
 
     ctx.strokeStyle = ctx.fillStyle = 'rgba(220, 255, 220, 0.7)';
     ctx.lineWidth = 2;
@@ -772,6 +772,38 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     ctx.stroke();
     ctx.beginPath();
     ctx.arc(C2009R1_cm[0], C2009R1_cm[1], 4, 0, 2*Math.PI, true);
+    ctx.fill();
+
+
+    var lutetia = {
+        t0: 2455400.5-2400000.5,
+        q: 2.039175887090527,
+        e: 0.1628669085598194,
+        peri: 250.192513362607*DEG2RAD,
+        node: 80.89961160386014*DEG2RAD,
+        incl: 3.063753824680438*DEG2RAD
+    };
+
+    var lutetia_PQR = StarJs.Kepler.gaussVec(lutetia.node, lutetia.incl, lutetia.peri);
+    var lutetia_pos = StarJs.Kepler.keplerPos(StarJs.Solar.GM,
+                                              lutetia.t0,
+                                              mjd,
+                                              lutetia.q,
+                                              lutetia.e,
+                                              lutetia_PQR);
+
+    earthPos = StarMap.EARTH.keplerCoord(jct);
+    var ecl2equ = StarJs.Coord.ecl2equMatrix(jct);
+    lutetia_pos = new StarJs.Vector.Polar3(ecl2equ.apply(lutetia_pos.sub(earthPos)));
+    var lutetia_cm = this.proj.projectObj(lutetia_pos.theta, lutetia_pos.phi);
+
+    ctx.strokeStyle = ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(lutetia_cm[0], lutetia_cm[1], 6, 0, 2*Math.PI, true);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(lutetia_cm[0], lutetia_cm[1], 4, 0, 2*Math.PI, true);
     ctx.fill();
 
     
