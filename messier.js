@@ -122,5 +122,6 @@ var MESSIER_COLORS = {
     '9': '#FFA', // Supernova remnant
     'A': '#444', // Asterism
     'B': '#444', // Milky Way patch
-    'C': '#444'  // Binary star
+    'C': '#444', // Binary star
+    'Cw':'#F88'  // Caldwell
 };
