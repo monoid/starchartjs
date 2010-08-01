@@ -78,7 +78,8 @@ StereographicProjection.prototype.projectMeridian = function (lam) {
             'type': 'circle',
             'x': x,
             'y': y,
-            'r': Math.abs(rho)
+            'flip': rho < 0,
+	    'r': Math.abs(rho)
         };
     }
 };
@@ -99,11 +100,13 @@ StereographicProjection.prototype.projectParallel = function (phi) {
             'vy': 0
         };
     } else {
+	var rho = R*Math.cos(phi)/s;
         return {
             'type': 'circle',
             'x': 0,
             'y': R*this.cph1/s,
-            'r': Math.abs(R*Math.cos(phi)/s)
+            'flip': rho < 0,
+            'r': Math.abs(rho)
         };
     }
 };
@@ -183,6 +186,7 @@ Produced by Maxima 5.18.1:
         'x': c1*this.rad, 'y': c2*this.rad,
         'a1': a1, 'a2': a2,
         'p1': p1, 'p2': p2,
+        'flip': d < 0,
         'r': r*this.rad
     };
 };
@@ -219,14 +223,15 @@ StereographicProjection.prototype.projectCircle2 = function (p, alpha) {
     var aa2 = (p[0]*p[0]+p[1]*p[1])/(this.rad*this.rad);
     var denom = 1 - aa2*r*r;
 
-    var rad = Math.abs(r*(aa2+1)/denom);
+    var rho = r*(aa2+1)/denom;
     var cx = p[0]*(1+r*r)/denom;
     var cy = p[1]*(1+r*r)/denom;
 
     return {
         'type': 'circle',
         'x': cx, 'y': cy,
-        'rad': this.rad*rad
+        'flip': denom < 0,
+        'rad': this.rad*Math.abs(rho)
     };
 };
 
@@ -538,7 +543,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     // lines are drawn twice, and they color differs (somewhat
     // brighter) if alpha is used.
     ctx.strokeStyle = 'rgba(128,0,128,1)';
-    var prev = null;
+    var prev = null, flip;
     for (j = 0; j < CON_BOUND_18.length; ++j) {
         var l = CON_BOUND_18[j], a1, a2, gr;
         if (cstn === l[2]) {
@@ -556,6 +561,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                     DEG2RAD*l[1],
                     a2 = 15*Math.PI*l[0]/180
                 );
+                flip = angSep(a1, a2) < angSep(a2, a1) !== seg.flip;
                 gr = false;
             } else {
                 seg = this.proj.projectGreatSegment(a1 = Math.PI*prev[1]/180,
@@ -563,6 +569,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                                                     a2 = Math.PI*l[1]/180,
                                                     15*Math.PI*l[0]/180);
                 gr = true;
+                flip = seg.flip;
             }
             ctx.beginPath();
             switch (seg.type) {
@@ -570,7 +577,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                 ctx.arc(seg.x, seg.y,
                         seg.r,
                         seg.a1, seg.a2,
-                        angSep(a1, a2) < angSep(a2, a1) !== (gr && seg.p1[0] > 0));
+                        flip);
                 break;
             case 'line':
                 // TODO sometimes lines shouldn't be drawn if their
