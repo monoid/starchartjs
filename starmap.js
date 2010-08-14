@@ -543,13 +543,11 @@ StarMap.prototype.setPos = function (lat, lon, time) {
     // lines are drawn twice, and they color differs (somewhat
     // brighter) if alpha is used.
     ctx.strokeStyle = 'rgba(128,0,128,1)';
-    var prev = null, flip;
-    for (j = 0; j < CON_BOUND_18.length; ++j) {
-        var l = CON_BOUND_18[j], a1, a2, gr;
-        if (cstn === l[2]) {
-            var seg;
-            if (prev[1] === l[1]) {
-                seg = this.proj.projectSegment(
+    var prev = null, first;
+    function drawCnstBnd(prev, l, proj) {
+	var seg, flip, a1, a2;
+	if (prev[1] === l[1]) {
+	    seg = proj.projectSegment(
                     // Center
                     Math.PI/2, 0,
                     // Radius
@@ -560,38 +558,45 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                     // Point 2
                     DEG2RAD*l[1],
                     a2 = 15*Math.PI*l[0]/180
-                );
-                flip = angSep(a1, a2) < angSep(a2, a1) !== seg.flip;
-                gr = false;
-            } else {
-                seg = this.proj.projectGreatSegment(a1 = Math.PI*prev[1]/180,
+					   );
+	    flip = angSep(a1, a2) < angSep(a2, a1) !== seg.flip;
+	    gr = false;
+	} else {
+	    seg = proj.projectGreatSegment(a1 = Math.PI*prev[1]/180,
                                                     15*Math.PI*prev[0]/180,
                                                     a2 = Math.PI*l[1]/180,
                                                     15*Math.PI*l[0]/180);
-                gr = true;
-                flip = seg.flip;
-            }
-            ctx.beginPath();
-            switch (seg.type) {
-            case 'circle':
-                ctx.arc(seg.x, seg.y,
-                        seg.r,
-                        seg.a1, seg.a2,
-                        flip);
-                break;
-            case 'line':
-                // TODO sometimes lines shouldn't be drawn if their
-                // central point pass through infinity, or at least
-                // they should be drawn more intelligently.  Can be
-                // such lines wisible in viewport?
-                ctx.moveTo(seg.x1, seg.y1);
-                ctx.lineTo(seg.x2, seg.y2);
-                break;
-            }
-            ctx.stroke();
+	    gr = true;
+	    flip = seg.flip;
+	}
+	ctx.beginPath();
+	switch (seg.type) {
+	case 'circle':
+	    ctx.arc(seg.x, seg.y,
+		    seg.r,
+		    seg.a1, seg.a2,
+		    flip);
+	    break;
+	case 'line':
+	    // TODO sometimes lines shouldn't be drawn if their
+	    // central point pass through infinity, or at least
+	    // they should be drawn more intelligently.  Can be
+	    // such lines visible in viewport?
+	    ctx.moveTo(seg.x1, seg.y1);
+	    ctx.lineTo(seg.x2, seg.y2);
+	    break;
+	}
+	ctx.stroke();
+    }
+    for (j = 0; j < CON_BOUND_18.length; ++j) {
+        var l = CON_BOUND_18[j], a1, a2, gr;
+        if (cstn === l[2]) {
+	    drawCnstBnd(prev, l, this.proj);
         } else {
-            // TODO: draw a closing arc.
-            prev = l;
+            if (prev !== null) {
+                drawCnstBnd(prev, first, this.proj);
+            }
+            first = prev = l;
             cstn = l[2];
         }
         prev = l;
