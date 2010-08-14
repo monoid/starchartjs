@@ -395,6 +395,53 @@ StarMap.PLANETS = [
 
 StarMap.EARTH = StarJs.Solar.BODIES.Earth;
 
+StarMap.Path = function (labels, ras, des, style, labelStyle) {
+    this.labels = labels;
+    this.ras = ras;
+    this.des = des;
+    this.style = style;
+    this.labelStyle = labelStyle;
+};
+
+StarMap.Path.prototype.draw = function (ctx, proj) {
+    var labels = this.labels, ra = this.ras, de = this.des;
+    var pts = Array(de.length);
+    
+    for (var key in this.style) {
+        ctx[key] = this.style[key];
+    }
+
+    ctx.beginPath();
+    for (var i = 0; i < de.length; ++i) {
+        var cp = pts[i] = proj.projectObj(Math.PI*de[i]/180.0,
+                                      Math.PI*ra[i]/12.0);
+        if (cp[2]) {
+            xx = cp[0];
+            yy = cp[1];
+            ctx.lineTo(xx, yy);
+        }
+    }
+    ctx.stroke();
+
+    for (key in this.labelStyle) {
+        ctx[key] = this.labelStyle[key];
+    }
+    for (i = 0; i < de.length; ++i) {
+        var cp = pts[i];
+        if (cp[2]) {
+            xx = cp[0];
+            yy = cp[1];
+            ctx.beginPath();
+            ctx.arc(xx, yy, 2, 0, 2*Math.PI, true);
+            ctx.fill();
+            if (ctx.fillText) {
+                ctx.fillText(labels[i], xx, yy - 4);
+            }
+        }
+    }
+
+};
+
 StarMap.prototype.drawTelrad = function (ctx, lat, lon) {
     var p = this.proj.projectObj(lat, lon);
     var g05 = this.proj.projectCircle2(p, 0.5/180*Math.PI);
@@ -721,39 +768,16 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                       48+14.0/60.0, 46+44.8/60.0, 42+ 0.7/60.0,
                       35+ 8.7/60.0, 27+30.3/60.0, 20+ 4.7/60.0,
                       13+16.4/60.0, 07+ 8.3/60.0,  1+35.8/60.0];
-    ctx.fillStyle = 'green';
-    ctx.strokeStyle = 'green';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (i = 0; i < C2009R1_DE.length; ++i) {
-        var cp = this.proj.projectObj(Math.PI*C2009R1_DE[i]/180.0,
-                                      Math.PI*C2009R1_RA[i]/12.0);
-        if (cp[2]) {
-            xx = cp[0];
-            yy = cp[1];
-            ctx.lineTo(xx, yy);
-        }
-    }
-    ctx.stroke();
-
-    ctx.fillStyle = '#8F8';
-    ctx.strokeStyle = '#8F8';
-    // We recalculate same data, but this is just a sample, nevermind.
-    for (i = 0; i < C2009R1_DE.length; ++i) {
-        var cp = this.proj.projectObj(Math.PI*C2009R1_DE[i]/180.0,
-                                      Math.PI*C2009R1_RA[i]/12.0);
-        if (cp[2]) {
-            xx = cp[0];
-            yy = cp[1];
-            ctx.beginPath();
-            ctx.arc(xx, yy, 2, 0, 2*Math.PI, true);
-            ctx.fill();
-            if (ctx.fillText) {
-                ctx.fillText(C2009R1_DA[i], xx, yy - 4);
-            }
-        }
-    }
-
+    var C2009R1 = new StarMap.Path(C2009R1_DA, C2009R1_RA, C2009R1_DE, {
+        'fillStyle': 'green',
+        'strokeStyle': 'green',
+        'lineWidth': 1
+    }, {
+        'fillStyle': '#8F8',
+        'strokeStyle': '#8F8'
+    });
+    C2009R1.draw(ctx, this.proj);
+    
     // Draw current position of the comet
     var C2009R1 = {
         t0: 2455379.6792-2400000.5,
