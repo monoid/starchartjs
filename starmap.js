@@ -575,7 +575,7 @@ StarMap.prototype.setPos = function (lat, lon, time) {
                    p.y+halfsize*p.vy);
         break;
     case 'circle':
-        ctx.arc(p.x, p.y, p.r, 0, 2*Math.PI, true);
+        ctx.arc(p.x, -p.y, p.r, 0, 2*Math.PI, true);
         break;
     }
     ctx.stroke();
