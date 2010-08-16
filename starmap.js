@@ -486,18 +486,22 @@ StarMap.prototype.drawTelrad = function (ctx, lat, lon) {
 };
 
 StarMap.prototype.setPos = function (lat, lon, time) {
-    this.lat = lat;
-    this.lon = lon;
-    this.time = time;
-
-    var Ti = StarJs.Time;
-
     if (typeof time === 'undefined') {
         time = +new Date();
     } else if (typeof time !== 'number') {
         time = +time;
     }
-    
+
+    this.lat = lat;
+    this.lon = lon;
+    this.time = time;
+};
+
+StarMap.prototype.draw = function () {
+    var lat = this.lat, lon = this.lon, time = this.time;
+
+    var Ti = StarJs.Time;
+
     var mjd = Ti.time2mjd(time);
     var gms_t = Ti.gmst(mjd);
 
