@@ -334,6 +334,11 @@ function StarMap (elt, size, stars, cnstltns, prop) {
     //this.drawBg();
 }
 
+StarMap.prototype.setSize = function (size) {
+    this.proj.setRadius(Math.floor(size/2));
+    this.size = size;
+};
+
 StarMap.prototype.drawBg = function () {
     var size = this.size;
     var halfsize = Math.floor(size/2);
@@ -481,6 +486,10 @@ StarMap.prototype.drawTelrad = function (ctx, lat, lon) {
 };
 
 StarMap.prototype.setPos = function (lat, lon, time) {
+    this.lat = lat;
+    this.lon = lon;
+    this.time = time;
+
     var Ti = StarJs.Time;
 
     if (typeof time === 'undefined') {
