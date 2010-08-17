@@ -490,6 +490,83 @@ StarMap.Telrad.prototype.draw = function (ctx, proj) {
     drawBullEye(g40);
 };
 
+StarMap.ConstellationBoundaries = function (boundaries) {
+    // TODO: precession
+    this.boundaries = boundaries;
+};
+
+StarMap.ConstellationBoundaries.prototype.draw = function (ctx, proj) {
+    var DEG2RAD = StarJs.Math.DEG2RAD;
+    function angSep(a1, a2) {
+        return StarJs.Math.mod(a1-a2, 2 * Math.PI);
+    };
+    // Constellation boundaries
+    var cstn = null;
+    // TODO: make a = 0.5 after boundaries line merging.  Now many
+    // lines are drawn twice, and they color differs (somewhat
+    // brighter) if alpha is used.
+    ctx.strokeStyle = 'rgba(128,0,128,1)';
+    var prev = null, first;
+    function drawCnstBnd(prev, l) {
+	var seg, flip, a1, a2;
+	if (prev[1] === l[1]) {
+	    seg = proj.projectSegment(
+                    // Center
+                    Math.PI/2, 0,
+                    // Radius
+                    Math.PI/2-DEG2RAD*l[1],
+                    // Point 1
+                    DEG2RAD*prev[1],
+                    a1 = 15*Math.PI*prev[0]/180,
+                    // Point 2
+                    DEG2RAD*l[1],
+                    a2 = 15*Math.PI*l[0]/180
+					   );
+	    flip = angSep(a1, a2) < angSep(a2, a1) !== seg.flip;
+	    gr = false;
+	} else {
+	    seg = proj.projectGreatSegment(a1 = Math.PI*prev[1]/180,
+                                                    15*Math.PI*prev[0]/180,
+                                                    a2 = Math.PI*l[1]/180,
+                                                    15*Math.PI*l[0]/180);
+	    gr = true;
+	    flip = seg.flip;
+	}
+	ctx.beginPath();
+	switch (seg.type) {
+	case 'circle':
+	    ctx.arc(seg.x, seg.y,
+		    seg.r,
+		    seg.a1, seg.a2,
+		    flip);
+	    break;
+	case 'line':
+	    // TODO sometimes lines shouldn't be drawn if their
+	    // central point pass through infinity, or at least
+	    // they should be drawn more intelligently.  Can be
+	    // such lines visible in viewport?
+	    ctx.moveTo(seg.x1, seg.y1);
+	    ctx.lineTo(seg.x2, seg.y2);
+	    break;
+	}
+	ctx.stroke();
+    }
+    var boundaries = this.boundaries;
+    for (j = 0; j < boundaries.length; ++j) {
+        var l = boundaries[j], a1, a2, gr;
+        if (cstn === l[2]) {
+	    drawCnstBnd(prev, l);
+        } else {
+            if (prev !== null) {
+                drawCnstBnd(prev, first);
+            }
+            first = prev = l;
+            cstn = l[2];
+        }
+        prev = l;
+    }
+};
+
 StarMap.prototype.setPos = function (lat, lon, time) {
     if (typeof time === 'undefined') {
         time = +new Date();
@@ -599,73 +676,8 @@ StarMap.prototype.draw = function () {
     ctx.stroke();
     ctx.lineWidth = 1;
 
-    function angSep(a1, a2) {
-        return StarJs.Math.mod(a1-a2, 2 * Math.PI);
-    };
-    // Constellation boundaries
-    var cstn = null;
-    // TODO: make a = 0.5 after boundaries line merging.  Now many
-    // lines are drawn twice, and they color differs (somewhat
-    // brighter) if alpha is used.
-    ctx.strokeStyle = 'rgba(128,0,128,1)';
-    var prev = null, first;
-    function drawCnstBnd(prev, l, proj) {
-	var seg, flip, a1, a2;
-	if (prev[1] === l[1]) {
-	    seg = proj.projectSegment(
-                    // Center
-                    Math.PI/2, 0,
-                    // Radius
-                    Math.PI/2-DEG2RAD*l[1],
-                    // Point 1
-                    DEG2RAD*prev[1],
-                    a1 = 15*Math.PI*prev[0]/180,
-                    // Point 2
-                    DEG2RAD*l[1],
-                    a2 = 15*Math.PI*l[0]/180
-					   );
-	    flip = angSep(a1, a2) < angSep(a2, a1) !== seg.flip;
-	    gr = false;
-	} else {
-	    seg = proj.projectGreatSegment(a1 = Math.PI*prev[1]/180,
-                                                    15*Math.PI*prev[0]/180,
-                                                    a2 = Math.PI*l[1]/180,
-                                                    15*Math.PI*l[0]/180);
-	    gr = true;
-	    flip = seg.flip;
-	}
-	ctx.beginPath();
-	switch (seg.type) {
-	case 'circle':
-	    ctx.arc(seg.x, seg.y,
-		    seg.r,
-		    seg.a1, seg.a2,
-		    flip);
-	    break;
-	case 'line':
-	    // TODO sometimes lines shouldn't be drawn if their
-	    // central point pass through infinity, or at least
-	    // they should be drawn more intelligently.  Can be
-	    // such lines visible in viewport?
-	    ctx.moveTo(seg.x1, seg.y1);
-	    ctx.lineTo(seg.x2, seg.y2);
-	    break;
-	}
-	ctx.stroke();
-    }
-    for (j = 0; j < CON_BOUND_18.length; ++j) {
-        var l = CON_BOUND_18[j], a1, a2, gr;
-        if (cstn === l[2]) {
-	    drawCnstBnd(prev, l, this.proj);
-        } else {
-            if (prev !== null) {
-                drawCnstBnd(prev, first, this.proj);
-            }
-            first = prev = l;
-            cstn = l[2];
-        }
-        prev = l;
-    }
+    // Boundaries
+    (new StarMap.ConstellationBoundaries(CON_BOUND_18)).draw(ctx, this.proj);
 
     // Constellations
     ctx.beginPath();
