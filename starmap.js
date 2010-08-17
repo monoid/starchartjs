@@ -45,7 +45,7 @@ StereographicProjection.prototype.projectPoints = function (arr) {
         var cosl1 = (1-t2l)/t2l1, sinl1 = 2*de/t2l1;
         var cosl = cosSum(cosl1, sinl1, clam, slam), sinl = sinSum(cosl1, sinl1, clam, slam);
         var k = rad / (1.0 + sphi * sinc + cphi * cosc * cosl);
-        var x = k * cosc * sinl, y = k * (cphi * sinc - sphi * cosc * cosl);
+        var x = k * cosc * sinl, y = k * (sphi * cosc * cosl - cphi * sinc);
         res[i] = [mag,
                   x,
                   y,
@@ -72,7 +72,7 @@ StereographicProjection.prototype.projectMeridian = function (lam) {
         };
     } else {
         var x = -R/(cp1*Math.tan(dlam));
-        var y = -R*Math.tan(phi1);
+        var y = R*Math.tan(phi1);
         var rho = R/(cp1*sl1);
         return {
             'type': 'circle',
@@ -104,7 +104,7 @@ StereographicProjection.prototype.projectParallel = function (phi) {
         return {
             'type': 'circle',
             'x': 0,
-            'y': R*this.cph1/s,
+            'y': -R*this.cph1/s,
             'flip': rho < 0,
             'r': Math.abs(rho)
         };
@@ -539,7 +539,7 @@ StarMap.prototype.draw = function () {
                        p.y+halfsize*p.vy);
             break;
         case 'circle':
-            ctx.arc(p.x, -p.y, p.r, 0, 2*Math.PI, true);
+            ctx.arc(p.x, p.y, p.r, 0, 2*Math.PI, true);
             break;
         }
         ctx.stroke();
@@ -556,7 +556,7 @@ StarMap.prototype.draw = function () {
                        p.y+halfsize*p.vy);
             break;
         case 'circle':
-            ctx.arc(p.x, -p.y, p.r,
+            ctx.arc(p.x, p.y, p.r,
                     0, 2*Math.PI, true);
             break;
         }
@@ -574,7 +574,7 @@ StarMap.prototype.draw = function () {
                    p.y+halfsize*p.vy);
         break;
     case 'circle':
-        ctx.arc(p.x, -p.y, p.r, 0, 2*Math.PI, true);
+        ctx.arc(p.x, p.y, p.r, 0, 2*Math.PI, true);
         break;
     }
     ctx.stroke();
@@ -588,7 +588,7 @@ StarMap.prototype.draw = function () {
                    p.y+halfsize*p.vy);
         break;
     case 'circle':
-        ctx.arc(p.x, -p.y, p.r, 0, 2*Math.PI, true);
+        ctx.arc(p.x, p.y, p.r, 0, 2*Math.PI, true);
         break;
     }
     ctx.stroke();
@@ -669,8 +669,8 @@ StarMap.prototype.draw = function () {
         var s = co[j][0], e = co[j][1];
         var so = ortho[s], eo = ortho[e];
         if (so[3] || eo[3]) {
-            ctx.moveTo(so[1], -so[2]);
-            ctx.lineTo(eo[1], -eo[2]);
+            ctx.moveTo(so[1], so[2]);
+            ctx.lineTo(eo[1], eo[2]);
         }
     }
     ctx.stroke();
@@ -690,7 +690,7 @@ StarMap.prototype.draw = function () {
         var s = ortho[i];
         if (s[3]) {
             ctx.beginPath();
-            ctx.arc(s[1], -s[2],
+            ctx.arc(s[1], s[2],
                     Math.max(3-s[0]/2, 0.5),
                     0, 2*Math.PI, true);
             ctx.fill();
