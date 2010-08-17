@@ -490,9 +490,32 @@ StarMap.Telrad.prototype.draw = function (ctx, proj) {
     drawBullEye(g40);
 };
 
-StarMap.ConstellationBoundaries = function (boundaries) {
-    // TODO: precession
-    this.boundaries = boundaries;
+StarMap.ConstellationBoundaries = function (boundaries, epoch) {
+    var DEG2RAD = StarJs.Math.DEG2RAD;
+
+    if (typeof epoch === 'undefined') {
+        epoch = 0; // J2000
+    }
+    var prec = StarJs.Coord.precessionEquMatrix((1938-2000)/100.0, epoch);
+
+    // Precess polar point
+    var polar = new StarJs.Vector.Vector3(0,0,1);
+    this.polarPrec = new StarJs.Vector.Polar3(prec.apply(polar));
+
+    // Precess point
+    var len = boundaries.length;
+    var result = Array(len);
+    for (var i = 0; i < len; ++i) {
+        var pt = boundaries[i].slice(0);
+        var v = new StarJs.Vector.Polar3(DEG2RAD*pt[1],
+                                         15*Math.PI*pt[0]/180).toVector3();
+        var p = new StarJs.Vector.Polar3(prec.apply(v));
+        pt.push(p.phi);
+        pt.push(p.theta);
+        result[i] = pt;
+    }
+
+    this.boundaries = result;
 };
 
 StarMap.ConstellationBoundaries.prototype.draw = function (ctx, proj) {
