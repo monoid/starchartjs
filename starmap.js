@@ -447,11 +447,16 @@ StarMap.Path.prototype.draw = function (ctx, proj) {
 
 };
 
-StarMap.prototype.drawTelrad = function (ctx, lat, lon) {
-    var p = this.proj.projectObj(lat, lon);
-    var g05 = this.proj.projectCircle2(p, 0.5/180*Math.PI);
-    var g20 = this.proj.projectCircle2(p, 2.0/180*Math.PI);
-    var g40 = this.proj.projectCircle2(p, 4.0/180*Math.PI);
+StarMap.Telrad = function (lat, lon) {
+    this.lat = lat;
+    this.lon = lon;
+};
+
+StarMap.Telrad.prototype.draw = function (ctx, proj) {
+    var p = proj.projectObj(this.lat, this.lon);
+    var g05 = proj.projectCircle2(p, 0.5/180*Math.PI);
+    var g20 = proj.projectCircle2(p, 2.0/180*Math.PI);
+    var g40 = proj.projectCircle2(p, 4.0/180*Math.PI);
 
     var h = Math.floor(this.size/2);
 
@@ -757,10 +762,8 @@ StarMap.prototype.draw = function () {
     }
 
     // Draw sample telrads
-    var tel = {'x': 0.901, 'y': 0.451};
-    this.drawTelrad(ctx, tel.x, tel.y);
-    tel = {'x': 0.301, 'y': 2.151};
-    this.drawTelrad(ctx, tel.x, tel.y);
+    (new StarMap.Telrad(0.901, 0.451)).draw(ctx, this.proj);
+    (new StarMap.Telrad(0.301, 2.151)).draw(ctx, this.proj);
 
     // Draw path of C/2009 R1 (McNaught)
     var C2009R1_DA = ["2010 05 04", "2010 05 09", "2010 05 14",
