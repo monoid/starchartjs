@@ -280,7 +280,7 @@ StereographicProjection.prototype.inverseObj = function (x, y) {
     }
     if (rho2 < 1e-18) {
         return {
-            're': lam1,
+            'ra': lam1,
             'de': phi1
         };
     } else {
@@ -304,7 +304,7 @@ StereographicProjection.prototype.inverseObj = function (x, y) {
         lam = StarJs.Math.mod(lam, 2*Math.PI);
         phi = StarJs.Math.mod(phi+Math.PI, 2*Math.PI)-Math.PI;
         return {
-            're': lam,
+            'ra': lam,
             'de': phi
         };
     }
