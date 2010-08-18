@@ -503,16 +503,21 @@ StarMap.ConstellationBoundaries = function (boundaries, epoch) {
     this.polarPrec = new StarJs.Vector.Polar3(prec.apply(polar));
 
     // Precess point
-    var len = boundaries.length;
+    var len = /* 18+0* */boundaries.length;
     var result = Array(len);
     for (var i = 0; i < len; ++i) {
+//         console.log('Point: '+i);
         var pt = boundaries[i].slice(0);
-        var v = new StarJs.Vector.Polar3(DEG2RAD*pt[1],
-                                         15*Math.PI*pt[0]/180).toVector3();
+        var v = new StarJs.Vector.Polar3(15*Math.PI*pt[0]/180,
+                                         DEG2RAD*pt[1]).toVector3();
+//         console.debug(v.x, v.y, v.z);
         var p = new StarJs.Vector.Polar3(prec.apply(v));
-        pt.push(p.phi);
-        pt.push(p.theta);
+//         console.debug(p);
+        pt[0] *= 15;
+        pt.push(p.phi/DEG2RAD)
+        pt.push(p.theta/DEG2RAD);
         result[i] = pt;
+//         console.debug(pt);
     }
 
     this.boundaries = result;
@@ -529,32 +534,58 @@ StarMap.ConstellationBoundaries.prototype.draw = function (ctx, proj) {
     // lines are drawn twice, and they color differs (somewhat
     // brighter) if alpha is used.
     ctx.strokeStyle = 'rgba(128,0,128,1)';
-    var prev = null, first;
+    var prev = null, first, polarPrec = this.polarPrec;
     function drawCnstBnd(prev, l) {
 	var seg, flip, a1, a2;
 	if (prev[1] === l[1]) {
+            a1 = Math.PI*prev[0]/180;
+            a2 = Math.PI*l[0]/180;
 	    seg = proj.projectSegment(
-                    // Center
-                    Math.PI/2, 0,
-                    // Radius
-                    Math.PI/2-DEG2RAD*l[1],
-                    // Point 1
-                    DEG2RAD*prev[1],
-                    a1 = 15*Math.PI*prev[0]/180,
-                    // Point 2
-                    DEG2RAD*l[1],
-                    a2 = 15*Math.PI*l[0]/180
-					   );
+                // Center
+                polarPrec.theta, polarPrec.phi,
+                // Radius
+                Math.PI/2-DEG2RAD*l[1],
+                // Point 1
+                prev[3]*DEG2RAD,
+                prev[4]*DEG2RAD,
+                // Point 2
+                l[3]*DEG2RAD,
+                l[4]*DEG2RAD
+	    );
+//             seg = proj.projectSegment(
+//                 // Center
+//                 Math.PI/2, 0,
+//                 // Radius
+//                 Math.PI/2-DEG2RAD*l[1],
+//                 // Point 1
+//                 DEG2RAD*prev[1],
+//                 a1 = 15*Math.PI*prev[0]/180,
+//                 // Point 2
+//                 DEG2RAD*l[1],
+//                 a2 = 15*Math.PI*l[0]/180
+// 	    );
 	    flip = angSep(a1, a2) < angSep(a2, a1) !== seg.flip;
 	    gr = false;
 	} else {
-	    seg = proj.projectGreatSegment(a1 = Math.PI*prev[1]/180,
-                                                    15*Math.PI*prev[0]/180,
-                                                    a2 = Math.PI*l[1]/180,
-                                                    15*Math.PI*l[0]/180);
+            a1 = Math.PI*prev[1]/180;
+            a2 = Math.PI*l[1]/180;
+            seg = proj.projectGreatSegment(
+                prev[3]*DEG2RAD,
+                prev[4]*DEG2RAD,
+                // Point 2
+                l[3]*DEG2RAD,
+                l[4]*DEG2RAD
+            );
+// 	    seg = proj.projectGreatSegment(
+//                 a1 = Math.PI*prev[1]/180,
+//                 15*Math.PI*prev[0]/180,
+//                 a2 = Math.PI*l[1]/180,
+//                 15*Math.PI*l[0]/180
+//             );
 	    gr = true;
 	    flip = seg.flip;
 	}
+
 	ctx.beginPath();
 	switch (seg.type) {
 	case 'circle':
