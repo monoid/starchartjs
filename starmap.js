@@ -496,7 +496,7 @@ StarMap.ConstellationBoundaries = function (boundaries, epoch) {
     if (typeof epoch === 'undefined') {
         epoch = 0; // J2000
     }
-    var prec = StarJs.Coord.precessionEquMatrix((1938-2000)/100.0, epoch);
+    var prec = StarJs.Coord.precessionEquMatrix((1875-2000)/100.0, epoch);
 
     // Precess polar point
     var polar = new StarJs.Vector.Vector3(0,0,1);
