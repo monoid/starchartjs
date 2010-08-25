@@ -788,6 +788,10 @@ StarMap.prototype.draw = function () {
     if (this.prop && this.prop.messier) {
         (new StarMap.Catalogue("Messier", this.prop.messier, this.prop.messier_colors)).draw(ctx, this.proj);
     }
+    // Draw Caldwell objects
+    if (this.prop && this.prop.caldwell) {
+        (new StarMap.Catalogue("Caldwell", this.prop.caldwell, this.prop.caldwell_colors)).draw(ctx, this.proj);
+    }
 
     // Draw planets
     var jct = Ti.mjd2jct(mjd);
