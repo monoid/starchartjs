@@ -599,6 +599,38 @@ StarMap.ConstellationBoundaries.prototype.draw = function (ctx, proj) {
     }
 };
 
+StarMap.Catalogue = function (name, data, colors, renderer) {
+    function messierColor(mag) {
+        var v = Math.min(15, Math.floor(19-mag));
+        var h = v.toString(16);
+        return '#'+h+h+h;
+    }
+
+    this.name = name;
+    this.data = data.slice(0);
+    this.colors = colors;
+    
+    this.renderer = renderer || function (ctx, cm, cc, colors) {
+        ctx.beginPath();
+        ctx.strokeStyle = colors[cc[2]] || messierColor(cc[5]);
+        ctx.arc(cm[0], cm[1], 4, 0, 2*Math.PI, true);
+        ctx.stroke();
+    };
+};
+
+StarMap.Catalogue.prototype.draw = function (ctx, proj) {
+    var data = this.data;
+    var len = data.length, cc, cm;
+
+    for (i = 0; i < len; ++i) {
+        cc = data[i];
+        cm = proj.projectObj(cc[4], 15*cc[3]);
+        if (cm[2]) {
+            this.renderer(ctx, cm, cc, this.colors);
+        }
+    }
+};
+
 StarMap.prototype.setPos = function (lat, lon, time) {
     if (typeof time === 'undefined') {
         time = +new Date();
@@ -754,23 +786,7 @@ StarMap.prototype.draw = function () {
 
     // Draw Messier objects
     if (this.prop && this.prop.messier) {
-        var messier = this.prop.messier;
-        var mlen = messier.length, cc, cm;
-        for (i = 0; i < mlen; ++i) {
-            cc = messier[i];
-            cm = this.proj.projectObj(cc[4], 15*cc[3]);
-            if (cm[2]) {
-                var xx = cm[0], yy = cm[1];
-                ctx.beginPath();
-                if (this.prop.messier_colors && this.prop.messier_colors[messier[i][2]]) {
-                    ctx.strokeStyle = this.prop.messier_colors[cc[2]];
-                } else {
-                    ctx.strokeStyle = messierColor(cc[5]);
-                }
-                ctx.arc(xx, yy, 4, 0, 2*Math.PI, true);
-                ctx.stroke();
-            }
-        }
+        (new StarMap.Catalogue("Messier", this.prop.messier, this.prop.messier_colors)).draw(ctx, this.proj);
     }
 
     // Draw planets
