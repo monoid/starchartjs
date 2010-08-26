@@ -746,6 +746,10 @@ StarMap.Object.prototype.draw = function (ctx, proj) {
     ctx.beginPath();
     ctx.arc(cm[0], cm[1], 4, 0, 2*Math.PI, true);
     ctx.fill();
+
+    if (this.params.title) {
+        ctx.fillText(this.params.title, cm[0]+8, cm[1]+8);
+    }
 };
 
 StarMap.prototype.setPos = function (lat, lon, time) {
@@ -906,6 +910,7 @@ StarMap.prototype.draw = function () {
     
     // Draw current position of the comet
     var C2009R1_param = {
+        title: 'C/2009 R1 (McNaught)',
         t0: 2455379.6792-2400000.5,
         q: 0.405011,
         z: -0.000808,
@@ -919,6 +924,7 @@ StarMap.prototype.draw = function () {
 
 
     var lutetia = {
+        title: 'Lutetia',
         t0: 2455400.5-2400000.5,
         q: 2.039175887090527,
         e: 0.1628669085598194,
