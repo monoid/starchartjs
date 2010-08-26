@@ -631,6 +631,80 @@ StarMap.Catalogue.prototype.draw = function (ctx, proj) {
     }
 };
 
+StarMap.Graticule = function (lon) {
+    this.lon = lon;
+};
+
+StarMap.Graticule.prototype.draw = function (ctx, proj) {
+    ctx.strokeStyle = '#448';
+    for (i = -80; i < 90; i += 10) {
+        var p = proj.projectParallel(Math.PI*i/180);
+        ctx.beginPath();
+        ctx.lineWidth = (i === 0) ? 1.7 : 1;
+        switch (p.type) {
+        case 'line':
+            ctx.moveTo(p.x-halfsize*p.vx,
+                       p.y-halfsize*p.vy);
+            ctx.lineTo(p.x+halfsize*p.vx,
+                       p.y+halfsize*p.vy);
+            break;
+        case 'circle':
+            ctx.arc(p.x, p.y, p.r, 0, 2*Math.PI, true);
+            break;
+        }
+        ctx.stroke();
+    }
+    for (i = 0; i < 180; i += 15) {
+        var p = proj.projectMeridian(Math.PI*i/180);
+        ctx.beginPath();
+        ctx.lineWidth = (i === 0 || i === -180) ? 1.7 : 1;
+        switch (p.type) {
+        case 'line':
+            ctx.moveTo(p.x-halfsize*p.vx,
+                       p.y-halfsize*p.vy);
+            ctx.lineTo(p.x+halfsize*p.vx,
+                       p.y+halfsize*p.vy);
+            break;
+        case 'circle':
+            ctx.arc(p.x, p.y, p.r,
+                    0, 2*Math.PI, true);
+            break;
+        }
+        ctx.stroke();
+    }
+
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    p = proj.projectParallel(Math.PI/2-this.lon);
+    switch (p.type) {
+    case 'line':
+        ctx.moveTo(p.x-halfsize*p.vx,
+                   p.y-halfsize*p.vy);
+        ctx.lineTo(p.x+halfsize*p.vx,
+                   p.y+halfsize*p.vy);
+        break;
+    case 'circle':
+        ctx.arc(p.x, p.y, p.r, 0, 2*Math.PI, true);
+        break;
+    }
+    ctx.stroke();
+    ctx.beginPath();
+    p = proj.projectParallel(-Math.PI/2-this.lon);
+    switch (p.type) {
+    case 'line':
+        ctx.moveTo(p.x-halfsize*p.vx,
+                   p.y-halfsize*p.vy);
+        ctx.lineTo(p.x+halfsize*p.vx,
+                   p.y+halfsize*p.vy);
+        break;
+    case 'circle':
+        ctx.arc(p.x, p.y, p.r, 0, 2*Math.PI, true);
+        break;
+    }
+    ctx.stroke();
+    ctx.lineWidth = 1;
+};
+
 StarMap.prototype.setPos = function (lat, lon, time) {
     if (typeof time === 'undefined') {
         time = +new Date();
@@ -672,73 +746,8 @@ StarMap.prototype.draw = function () {
     this.drawBg();
 
     // Draw graticule
-    ctx.strokeStyle = '#448';
-    for (i = -80; i < 90; i += 10) {
-        var p = this.proj.projectParallel(Math.PI*i/180);
-        ctx.beginPath();
-        ctx.lineWidth = (i === 0) ? 1.7 : 1;
-        switch (p.type) {
-        case 'line':
-            ctx.moveTo(p.x-halfsize*p.vx,
-                       p.y-halfsize*p.vy);
-            ctx.lineTo(p.x+halfsize*p.vx,
-                       p.y+halfsize*p.vy);
-            break;
-        case 'circle':
-            ctx.arc(p.x, p.y, p.r, 0, 2*Math.PI, true);
-            break;
-        }
-        ctx.stroke();
-    }
-    for (i = 0; i < 180; i += 15) {
-        var p = this.proj.projectMeridian(Math.PI*i/180);
-        ctx.beginPath();
-        ctx.lineWidth = (i === 0 || i === -180) ? 1.7 : 1;
-        switch (p.type) {
-        case 'line':
-            ctx.moveTo(p.x-halfsize*p.vx,
-                       p.y-halfsize*p.vy);
-            ctx.lineTo(p.x+halfsize*p.vx,
-                       p.y+halfsize*p.vy);
-            break;
-        case 'circle':
-            ctx.arc(p.x, p.y, p.r,
-                    0, 2*Math.PI, true);
-            break;
-        }
-        ctx.stroke();
-    }
-    
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    p = this.proj.projectParallel(Math.PI/2-lon);
-    switch (p.type) {
-    case 'line':
-        ctx.moveTo(p.x-halfsize*p.vx,
-                   p.y-halfsize*p.vy);
-        ctx.lineTo(p.x+halfsize*p.vx,
-                   p.y+halfsize*p.vy);
-        break;
-    case 'circle':
-        ctx.arc(p.x, p.y, p.r, 0, 2*Math.PI, true);
-        break;
-    }
-    ctx.stroke();
-    ctx.beginPath();
-    p = this.proj.projectParallel(-Math.PI/2-lon);
-    switch (p.type) {
-    case 'line':
-        ctx.moveTo(p.x-halfsize*p.vx,
-                   p.y-halfsize*p.vy);
-        ctx.lineTo(p.x+halfsize*p.vx,
-                   p.y+halfsize*p.vy);
-        break;
-    case 'circle':
-        ctx.arc(p.x, p.y, p.r, 0, 2*Math.PI, true);
-        break;
-    }
-    ctx.stroke();
-    ctx.lineWidth = 1;
+    (new StarMap.Graticule(lon)).draw(ctx, this.proj);
+
 
     // Boundaries
     (new StarMap.ConstellationBoundaries(CON_BOUND_18)).draw(ctx, this.proj);
