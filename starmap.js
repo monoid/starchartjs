@@ -718,6 +718,36 @@ StarMap.Ecliptics.prototype.draw = function (ctx, proj) {
     }
 };
 
+StarMap.Object = function (params, color, mjd, jct) {
+    this.params = params;
+    this.color = color;
+    this.pqr = StarJs.Kepler.gaussVec(params.node, params.incl, params.peri);
+    this.mjd = mjd;
+    this.jct = jct;
+};
+
+StarMap.Object.prototype.draw = function (ctx, proj) {
+    var pos = StarJs.Kepler.keplerPos(StarJs.Solar.GM,
+                                      this.params.t0,
+                                      this.mjd,
+                                      this.params.q,
+                                      this.params.e,
+                                      this.pqr);
+    var earthPos = StarMap.EARTH.keplerCoord(this.jct);
+    var ecl2equ = StarJs.Coord.ecl2equMatrix(this.jct);
+    pos = new StarJs.Vector.Polar3(ecl2equ.apply(pos.sub(earthPos)));
+    var cm = proj.projectObj(pos.theta, pos.phi);
+
+    ctx.strokeStyle = ctx.fillStyle = this.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cm[0], cm[1], 6, 0, 2*Math.PI, true);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cm[0], cm[1], 4, 0, 2*Math.PI, true);
+    ctx.fill();
+};
+
 StarMap.prototype.setPos = function (lat, lon, time) {
     if (typeof time === 'undefined') {
         time = +new Date();
@@ -875,7 +905,7 @@ StarMap.prototype.draw = function () {
     C2009R1.draw(ctx, this.proj);
     
     // Draw current position of the comet
-    var C2009R1 = {
+    var C2009R1_param = {
         t0: 2455379.6792-2400000.5,
         q: 0.405011,
         z: -0.000808,
@@ -884,27 +914,8 @@ StarMap.prototype.draw = function () {
         node: 322.6220*DEG2RAD,
         incl: 77.0319*DEG2RAD
     };
-    var C2009R1_PQR = StarJs.Kepler.gaussVec(C2009R1.node, C2009R1.incl, C2009R1.peri);
 
-    var C2009R1_pos = StarJs.Kepler.keplerPos(StarJs.Solar.GM,
-                                              C2009R1.t0,
-                                              mjd,
-                                              C2009R1.q,
-                                              C2009R1.e,
-                                              C2009R1_PQR);
-    earthPos = StarMap.EARTH.keplerCoord(jct);
-    var ecl2equ = StarJs.Coord.ecl2equMatrix(jct);
-    C2009R1_pos = new StarJs.Vector.Polar3(ecl2equ.apply(C2009R1_pos.sub(earthPos)));
-    var C2009R1_cm = this.proj.projectObj(C2009R1_pos.theta, C2009R1_pos.phi);
-
-    ctx.strokeStyle = ctx.fillStyle = 'rgba(220, 255, 220, 0.7)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(C2009R1_cm[0], C2009R1_cm[1], 6, 0, 2*Math.PI, true);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(C2009R1_cm[0], C2009R1_cm[1], 4, 0, 2*Math.PI, true);
-    ctx.fill();
+    (new StarMap.Object(C2009R1_param, 'rgba(220, 255, 220, 0.7)', mjd, jct)).draw(ctx, this.proj);
 
 
     var lutetia = {
@@ -916,27 +927,7 @@ StarMap.prototype.draw = function () {
         incl: 3.063753824680438*DEG2RAD
     };
 
-    var lutetia_PQR = StarJs.Kepler.gaussVec(lutetia.node, lutetia.incl, lutetia.peri);
-    var lutetia_pos = StarJs.Kepler.keplerPos(StarJs.Solar.GM,
-                                              lutetia.t0,
-                                              mjd,
-                                              lutetia.q,
-                                              lutetia.e,
-                                              lutetia_PQR);
-
-    earthPos = StarMap.EARTH.keplerCoord(jct);
-    var ecl2equ = StarJs.Coord.ecl2equMatrix(jct);
-    lutetia_pos = new StarJs.Vector.Polar3(ecl2equ.apply(lutetia_pos.sub(earthPos)));
-    var lutetia_cm = this.proj.projectObj(lutetia_pos.theta, lutetia_pos.phi);
-
-    ctx.strokeStyle = ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(lutetia_cm[0], lutetia_cm[1], 6, 0, 2*Math.PI, true);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(lutetia_cm[0], lutetia_cm[1], 4, 0, 2*Math.PI, true);
-    ctx.fill();
+    (new StarMap.Object(lutetia, 'rgba(255, 255, 255, 0.7)', mjd, jct)).draw(ctx, this.proj);
 
     
     // Draw sides of Earth
