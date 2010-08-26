@@ -705,6 +705,19 @@ StarMap.Graticule.prototype.draw = function (ctx, proj) {
     ctx.lineWidth = 1;
 };
 
+StarMap.Ecliptics = function () {
+};
+
+StarMap.Ecliptics.prototype.draw = function (ctx, proj) {
+    var eclp = proj.projectCircle(Math.PI/2 + StarJs.Solar.EPS, Math.PI/2, Math.PI/2);
+    if (eclp.type === 'circle') {
+        ctx.beginPath();
+        ctx.strokeStyle = 'yellow';
+        ctx.arc(eclp.x, eclp.y, eclp.rad, 0, 2*Math.PI, true);
+        ctx.stroke();
+    }
+};
+
 StarMap.prototype.setPos = function (lat, lon, time) {
     if (typeof time === 'undefined') {
         time = +new Date();
@@ -766,13 +779,7 @@ StarMap.prototype.draw = function () {
     ctx.stroke();
 
     // Draw ecliptics
-    var eclp = this.proj.projectCircle(Math.PI/2 + StarJs.Solar.EPS, Math.PI/2, Math.PI/2);
-    if (eclp.type === 'circle') {
-        ctx.beginPath();
-        ctx.strokeStyle = 'yellow';
-        ctx.arc(eclp.x, eclp.y, eclp.rad, 0, 2*Math.PI, true);
-        ctx.stroke();
-    }
+    (new StarMap.Ecliptics()).draw(ctx, this.proj);
 
     // Stars
     ctx.fillStyle = '#FFF';
