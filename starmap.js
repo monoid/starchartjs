@@ -346,7 +346,7 @@ StarMap.prototype.drawBg = function () {
 
     ctx.clearRect(0, 0, size, size);
     ctx.fillStyle='#FFF';
-    ctx.fillRect(-halfsize,-halfsize,halfsize, halfsize);
+    ctx.fillRect(-halfsize,-halfsize,size, size);
 
     ctx.beginPath();
     ctx.fillStyle = (this.prop.circleFill || "#000010");
