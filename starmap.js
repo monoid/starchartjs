@@ -311,6 +311,68 @@ StereographicProjection.prototype.inverseObj = function (x, y) {
 };
 
 /**
+ * Rendering scene: objects are cached for rotation and zooming.  When
+ * rotation or zoom is changed, internal matrix is recalculated, and
+ * on render method this matrix is applied to all points.  We do not
+ * use canvas' rotation and scaling because first affects labels (we
+ * wat them horizontal) and second affects line with (we want
+ * zoom-independent width).
+ *
+ * Possible workaround exist for this problem: keep orientation
+ * internally and compensate it when rendering labels, and keep zoom
+ * factor too and compensate it when drawing lines, arcs and circles.
+ */
+function Scene() {
+    this.objects = [];
+    this.matrix = null; // TODO
+    this.scale = 1.0;
+    this.rotation = 0.0;
+}
+
+Scene.prototype.drawLine = function (x1, y1, x2, y2, width, color) {
+    objects.push(function (ctx) {
+        ctx.beginPath();
+        ctx.strokeColor = color;
+        ctx.lineWidth = width/this.scale;
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+    });
+};
+
+Scene.prototype.drawArc = function (x, y, r, a1, a2, width, color) {
+    objects.push(function (ctx) {
+        var rot = this.rotation;
+        ctx.beginPath();
+        ctx.strokeColor = color;
+        ctx.lineWidth = width/this.scale;
+        ctx.arc(x, y, rad, a1, a2);
+        ctx.stroke();
+    });
+};
+
+Scene.prototype.drawCircle = function (x, y, r, width, color) {
+    objects.push(function (ctx) {
+        var rot = this.rotation;
+        ctx.beginPath();
+        ctx.strokeColor = color;
+        ctx.lineWidth = width/this.scale;
+        ctx.arc(x, y, rad, 0, 2*Math.PI);
+        ctx.stroke();
+    });
+};
+
+Scene.prototype.drawPlanet = function (x, y, r, title, color) {
+};
+
+Scene.prototype.drawStars = function (stars) {
+};
+
+Scene.prototype.reset = function () {
+    this.objects = [];
+};
+
+/**
  * Celestial map component.
  * @constructor
  */
