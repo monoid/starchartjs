@@ -12,25 +12,25 @@
       <canvas id="test-map800" width="800" height="800"></canvas>
     </div>
     <div id="coord">&nbsp;</div>
-    <script type="text/javascript" src="lib/starjs.min.js"></script>
     <script type="text/javascript" src="constellations-rey60.js"></script>
     <script type="text/javascript" src="messier.js"></script>
     <script type="text/javascript" src="caldwell.js"></script>
     <script type="text/javascript" src="boundaries-18.js"></script>
-    <script type="text/javascript" src="starmap.js"></script>
+    <script type="text/javascript" src="starmap.min.js"></script>
     <script type="text/javascript">
+      var RAD = 800;
       var map;
       function onload() {
-      map = new StarMap("test-map800", 800, REY_STARS60, REY_CONSTELLATIONS60, {messier: MESSIER, messier_colors: MESSIER_COLORS,caldwell: CALDWELL, caldwell_colors: MESSIER_COLORS});
+      map = new StarMap("test-map800", RAD, REY_STARS60, REY_CONSTELLATIONS60, {messier: MESSIER, messier_colors: MESSIER_COLORS,caldwell: CALDWELL, caldwell_colors: MESSIER_COLORS});
       map.setPos(83, 54);
-      map.setSize(800, 800);
+      map.setSize(RAD, RAD);
       map.draw();
       var el = document.getElementById("test-map800");
       var out = document.getElementById("coord");
       el.onmousemove = function (ev) {
         //console.debug(ev);
         if (!ev) var ev = window.event;
-        var h = map.proj.rad;
+        var h = RAD;
         var x = ev.pageX - h - /* HACK */ 8;
         var y = h - ev.pageY + /* HACK */ 8;
         //var y = ev.pageY - h - 8;
