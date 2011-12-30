@@ -37,6 +37,7 @@ StereographicProjection.prototype.projectPoints = function (arr) {
     var res = Array(len);
     var cphi = this.cph1, sphi = this.sph1;
     var clam = this.cla1, slam = this.sla1;
+
     for (i = 0; i < len; ++i) {
         var star = arr[i];
         var mag = star[0], re = star[2], de = -star[1];
@@ -453,7 +454,7 @@ StarMap.Moon.prototype.pl = { name: 'Moon' };
 StarMap.Moon.prototype.getCoord = function (jct, earthPos, equ2ecl) {
     // earthPos and equ2ecl are ignored
     var pos = StarJs.Solar.approxMoon(jct);
-    return {'phi': pos.ra, 'theta': pos.dec};
+    return {'phi': pos['ra'], 'theta': pos['dec']};
 };
 
 StarMap.PLANETS = [
