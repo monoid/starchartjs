@@ -1,3 +1,8 @@
 Demo: http://www.skyandme.com/dev/starchartjs/
 
 This library uses my another library StarJs: https://github.com/monoid/starjs
+
+It also uses Google Closure Compiler:
+http://code.google.com/intl/en/closure/compiler/
+
+to build a compressed version.
