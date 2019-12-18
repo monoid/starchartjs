@@ -180,8 +180,8 @@ Produced by Maxima 5.18.1:
     // find radius
     var r = Math.sqrt(1 + c1*c1 + c2*c2);
     // find angles
-    var a1 = Math.atan2(im1 - c2, re1 - c1);
-    var a2 = Math.atan2(im2 - c2, re2 - c1);
+    a1 = Math.atan2(im1 - c2, re1 - c1);
+    a2 = Math.atan2(im2 - c2, re2 - c1);
     return {
         type: 'circle',
         x: c1*this.rad, y: c2*this.rad,
@@ -332,7 +332,7 @@ function Scene() {
 }
 
 Scene.prototype.drawLine = function (x1, y1, x2, y2, width, color) {
-    objects.push(function (ctx) {
+    this.objects.push(function (ctx) {
         ctx.beginPath();
         ctx.strokeColor = color;
         ctx.lineWidth = width/this.scale;
@@ -343,23 +343,23 @@ Scene.prototype.drawLine = function (x1, y1, x2, y2, width, color) {
 };
 
 Scene.prototype.drawArc = function (x, y, r, a1, a2, width, color) {
-    objects.push(function (ctx) {
+    this.objects.push(function (ctx) {
         var rot = this.rotation;
         ctx.beginPath();
         ctx.strokeColor = color;
         ctx.lineWidth = width/this.scale;
-        ctx.arc(x, y, rad, a1, a2);
+        ctx.arc(x, y, r, a1, a2);
         ctx.stroke();
     });
 };
 
 Scene.prototype.drawCircle = function (x, y, r, width, color) {
-    objects.push(function (ctx) {
+    this.objects.push(function (ctx) {
         var rot = this.rotation;
         ctx.beginPath();
         ctx.strokeColor = color;
         ctx.lineWidth = width/this.scale;
-        ctx.arc(x, y, rad, 0, 2*Math.PI);
+        ctx.arc(x, y, r, 0, 2*Math.PI);
         ctx.stroke();
     });
 };
@@ -495,8 +495,8 @@ StarMap.Path.prototype.draw = function (ctx, proj) {
         var cp = pts[i] = proj.projectObj(Math.PI*de[i]/180.0,
                                       Math.PI*ra[i]/12.0);
         if (cp[2]) {
-            xx = cp[0];
-            yy = cp[1];
+            var xx = cp[0];
+            var yy = cp[1];
             ctx.lineTo(xx, yy);
         }
     }
@@ -664,7 +664,7 @@ StarMap.ConstellationBoundaries.prototype.draw = function (ctx, proj) {
 	ctx.stroke();
     }
     var boundaries = this.boundaries;
-    for (j = 0; j < boundaries.length; ++j) {
+    for (var j = 0; j < boundaries.length; ++j) {
         var l = boundaries[j], a1, a2, gr;
         if (cstn === l[2]) {
 	    drawCnstBnd(prev, l);
@@ -705,7 +705,7 @@ StarMap.Catalogue.prototype.draw = function (ctx, proj) {
     var data = this.data;
     var len = data.length, cc, cm;
 
-    for (i = 0; i < len; ++i) {
+    for (var i = 0; i < len; ++i) {
         cc = data[i];
         cm = proj.projectObj(cc[4], 15*cc[3]);
         if (cm[2]) {
@@ -723,7 +723,8 @@ StarMap.Graticule = function (lon) {
 
 StarMap.Graticule.prototype.draw = function (ctx, proj) {
     ctx.strokeStyle = '#448';
-    for (i = -80; i < 90; i += 10) {
+    var halfsize = Math.floor(this.size / 2);
+    for (var i = -80; i < 90; i += 10) {
         var p = proj.projectParallel(Math.PI*i/180);
         ctx.beginPath();
         ctx.lineWidth = (i === 0) ? 1.7 : 1;
@@ -889,7 +890,7 @@ StarMap.prototype.draw = function () {
 
 
     // Boundaries
-    (new StarMap.ConstellationBoundaries(CON_BOUND_18)).draw(ctx, this['proj']);
+    (new StarMap.ConstellationBoundaries(window.CON_BOUND_18)).draw(ctx, this['proj']);
 
     // Constellations
     ctx.beginPath();
@@ -942,9 +943,9 @@ StarMap.prototype.draw = function () {
         var equ2ecl = StarJs.Coord.ecl2equMatrix(jct);
         for (i = 0; i < StarMap.PLANETS.length; ++i) {
             var planet = StarMap.PLANETS[i];
-            cc = planet.getCoord(jct, earthPos, equ2ecl);
+            var cc = planet.getCoord(jct, earthPos, equ2ecl);
             
-            cm = this['proj'].projectObj(cc['theta'], cc['phi']);
+            var cm = this['proj'].projectObj(cc['theta'], cc['phi']);
             if (cm[2]) {
                 ctx.beginPath();
                 ctx.fillStyle = planet.color;
