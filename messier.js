@@ -1,4 +1,4 @@
-var MESSIER = 
+window['MESSIER'] = 
 [["M45", "Tau", 1, 0.06603162216210776, 0.4209152370377081, 1.6]
 , ["M31", "And", 5, -0.012420926432870929, 0.720239183572968, 3.4]
 , ["M44", "Cnc", 1, 0.15129095010391086, 0.3487749780720723, 3.7]
@@ -110,7 +110,7 @@ var MESSIER =
 , ["M91", "Com", 5, 0.21973696641236884, 0.2530727498615562, 10.2]];
 
 // Sample colors
-var MESSIER_COLORS = {
+window['MESSIER_COLORS'] = {
     '1': '#88F', // Open cluster
     '2': '#FAA', // Globular cluster
     '3': '#8FF', // Planetary nebula

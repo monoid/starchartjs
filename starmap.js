@@ -890,7 +890,7 @@ StarMap.prototype.draw = function () {
 
 
     // Boundaries
-    (new StarMap.ConstellationBoundaries(window.CON_BOUND_18)).draw(ctx, this['proj']);
+    (new StarMap.ConstellationBoundaries(window['CON_BOUND_18'])).draw(ctx, this['proj']);
 
     // Constellations
     ctx.beginPath();
