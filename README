@@ -1,8 +1,8 @@
-Demo: http://www.skyandme.com/
+Demo: https://monoid.github.io/starchartjs/
 
-This library uses my another library StarJs: https://github.com/monoid/starjs
+This library uses my another library StarJs: https://github.com/monoid/starjs .
+You will need its copy if you want to build a minified version.  starchart.min.js
+and starchart.debug.js already contains it.
 
-It also uses Google Closure Compiler:
+Google Closure Compiler is used for minified version:
 http://code.google.com/intl/en/closure/compiler/
-
-to build a compressed version.
